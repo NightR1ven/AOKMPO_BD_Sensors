@@ -25,6 +25,7 @@ namespace AOKMPO_BD_Sensors
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new MainViewModel();
         }
 
         /// <summary>

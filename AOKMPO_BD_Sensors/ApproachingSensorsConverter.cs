@@ -6,10 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using AOKMPO_BD_Sensors;
 
 namespace AOKMPO_BD_Sensors
 {
-    public class RoachingSensorsConverter : IValueConverter
+     public class ApproachingSensorsConverter : IValueConverter
     {
         /// <summary>
         /// Конвертация - подсчет подходящим по срокам инструментов

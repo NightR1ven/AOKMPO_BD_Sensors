@@ -3,12 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AOKMPO_BD_Sensors"
+        xmlns:local="clr-namespace:AOKMPO_BD_Sensors" d:DataContext="{d:DesignInstance Type=local:Sensor}"
         mc:Ignorable="d"
-        DataContext="{Binding Source={StaticResource ApproachingSensorsConverter}}"
        Title="Учет датчиков" Height="600" Width="900"
         WindowStartupLocation="CenterScreen">
-    
 
     <!-- Основной контейнер -->
     <Grid Margin="10">
@@ -90,14 +88,13 @@
         <StatusBar Grid.Row="3">
             <StatusBarItem>
                 <TextBlock>
-                    <Run Text="Всего инструментов:"/>
-                    <Run Text="{Binding Sensors.Count}"/>
+
                 </TextBlock>
             </StatusBarItem>
             <StatusBarItem>
                 <TextBlock Margin="10,0,0,0">
                     <Run Text="Приближающиеся:"/>
-                    <Run Text="{Binding Sensors.Count, Converter={local:ApproachingSensorsConverter}}"/>
+                   
                 </TextBlock>
             </StatusBarItem>
         </StatusBar>
