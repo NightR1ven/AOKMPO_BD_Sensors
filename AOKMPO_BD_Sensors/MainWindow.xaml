@@ -1,0 +1,105 @@
+﻿<Window x:Class="AOKMPO_BD_Sensors.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AOKMPO_BD_Sensors"
+        mc:Ignorable="d"
+        DataContext="{Binding Source={StaticResource ApproachingSensorsConverter}}"
+       Title="Учет датчиков" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
+    
+
+    <!-- Основной контейнер -->
+    <Grid Margin="10">
+        <!-- Определение строк -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Панель поиска -->
+            <RowDefinition Height="Auto"/>
+            <!-- Панель инструментов -->
+            <RowDefinition Height="*"/>
+            <!-- Список инструментов -->
+            <RowDefinition Height="Auto"/>
+            <!-- Статус бар -->
+        </Grid.RowDefinitions>
+
+        <!-- Панель поиска -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0">
+            <!-- Поле поиска -->
+            <TextBox Width="300" Margin="0,0,10,10" 
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalContentAlignment="Center">
+                <!-- Привязка Enter к команде показа всех -->
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding ShowAllCommand}"/>
+                </TextBox.InputBindings>
+            </TextBox>
+            <!-- Кнопки фильтрации -->
+            <Button Content="Поиск" Width="80" Margin="0,0,10,10" Command="{Binding ShowAllCommand}"/>
+            <Button Content="Истекающие" Width="100" Margin="0,0,10,10" Command="{Binding ShowExpiringCommand}"/>
+            <Button Content="Все" Width="80" Margin="0,0,10,10" Command="{Binding ShowAllCommand}"/>
+        </StackPanel>
+
+        <!-- Панель инструментов -->
+        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Left">
+            <!-- Кнопки управления -->
+            <Button Content="Добавить" Width="80" Margin="0,0,10,10" Command="{Binding AddCommand}"/>
+            <Button Content="Редактировать" Width="100" Margin="0,0,10,10" Command="{Binding EditCommand}"/>
+            <Button Content="Удалить" Width="80" Margin="0,0,10,10" Command="{Binding DeleteCommand}"/>
+            <Button Content="Экспорт в CSV" Width="100" Margin="0,0,10,10" Command="{Binding ExportCommand}"/>
+        </StackPanel>
+
+        <!-- Список инструментов -->
+        <ListView Grid.Row="2" ItemsSource="{Binding Sensors}" SelectedItem="{Binding SelectedSensor}" 
+                  MouseDoubleClick="ListView_MouseDoubleClick">
+            <!-- Определение колонок -->
+            <ListView.View>
+                <GridView>
+                    <!-- Колонки с привязкой к свойствам Sensor -->
+                    <GridViewColumn Header="Название" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                    <GridViewColumn Header="Заводской №" DisplayMemberBinding="{Binding SerialNumber}" Width="100"/>
+                    <GridViewColumn Header="Дата размещения" DisplayMemberBinding="{Binding PlacementDate, StringFormat=dd.MM.yyyy}" Width="100"/>
+                    <!-- Кастомная колонка для срока хранения с цветом -->
+                    <GridViewColumn Header="Срок хранения" Width="120">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Цветовой индикатор -->
+                                    <Rectangle Width="16" Height="16" Fill="{Binding ExpiryColor}" Margin="0,0,5,0"/>
+                                    <!-- Дата -->
+                                    <TextBlock Text="{Binding ExpiryDate, StringFormat=dd.MM.yyyy}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Стенд" DisplayMemberBinding="{Binding Workstation}" Width="100"/>
+                    <GridViewColumn Header="Место" DisplayMemberBinding="{Binding Location}" Width="150"/>
+                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="120"/>
+                </GridView>
+            </ListView.View>
+            <!-- Стиль для элементов списка - цвет фона по сроку -->
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Background" Value="{Binding ExpiryColor}"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+
+        <!-- Статус бар внизу окна -->
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="Всего инструментов:"/>
+                    <Run Text="{Binding Sensors.Count}"/>
+                </TextBlock>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Margin="10,0,0,0">
+                    <Run Text="Приближающиеся:"/>
+                    <Run Text="{Binding Sensors.Count, Converter={local:ApproachingSensorsConverter}}"/>
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

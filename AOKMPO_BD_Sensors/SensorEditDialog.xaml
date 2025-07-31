@@ -1,0 +1,90 @@
+﻿<Window x:Class="AOKMPO_BD_Sensors.SensorEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AOKMPO_BD_Sensors"
+        mc:Ignorable="d"
+        Title="Редактирование датчика" 
+        Height="450" Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="10">
+        <!-- Определение строк сетки -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Название -->
+            <RowDefinition Height="Auto"/>
+            <!-- Поле названия -->
+            <RowDefinition Height="Auto"/>
+            <!-- Заводской номер -->
+            <RowDefinition Height="Auto"/>
+            <!-- Поле заводского номера -->
+            <RowDefinition Height="Auto"/>
+            <!-- Дата размещения -->
+            <RowDefinition Height="Auto"/>
+            <!-- Поле даты размещения -->
+            <RowDefinition Height="Auto"/>
+            <!-- Срок хранения -->
+            <RowDefinition Height="Auto"/>
+            <!-- Поле срока хранения -->
+            <RowDefinition Height="Auto"/>
+            <!-- Стенд -->
+            <RowDefinition Height="Auto"/>
+            <!-- Поле стенда -->
+            <RowDefinition Height="Auto"/>
+            <!-- Место -->
+            <RowDefinition Height="Auto"/>
+            <!-- Поле места -->
+            <RowDefinition Height="Auto"/>
+            
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <!-- Назначение -->
+            <RowDefinition Height="*"/>
+            <!-- Поле назначения -->
+            <RowDefinition Height="Auto"/>
+            <!-- Кнопки -->
+        </Grid.RowDefinitions>
+
+        <!-- Название датчика -->
+        <Label Content="Название:"/>
+        <TextBox Grid.Row="1" Text="{Binding Sensor.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+        <!-- Заводской номер -->
+        <Label Grid.Row="2" Content="Заводской номер:"/>
+        <TextBox Grid.Row="3" Text="{Binding Sensor.SerialNumber, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+        <!-- Дата размещения -->
+        <Label Grid.Row="4" Content="Дата размещения:"/>
+        <DatePicker Grid.Row="5" SelectedDate="{Binding Sensor.PlacementDate}" Margin="0,0,0,10"/>
+
+        <!-- Срок хранения с цветовой индикацией -->
+        <Label Grid.Row="6" Content="Срок хранения:"/>
+        <DatePicker Grid.Row="7" SelectedDate="{Binding Sensor.ExpiryDate}" Margin="0,0,0,10">
+            <DatePicker.Background>
+                <!-- Привязка цвета фона к свойству ExpiryColor -->
+                <Binding Path="Sensor.ExpiryColor" Mode="OneWay"/>
+            </DatePicker.Background>
+        </DatePicker>
+
+        <!-- Стенд -->
+        <Label Grid.Row="8" Content="Стенд:"/>
+        <TextBox Grid.Row="9" Text="{Binding Sensor.Workstation, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+        <!-- Место хранения -->
+        <Label Grid.Row="10" Content="Место хранения:"/>
+        <TextBox Grid.Row="11" Text="{Binding Sensor.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+        <!-- Назначение (многострочное поле) -->
+        <Label Grid.Row="14" Content="Назначение:"/>
+        <TextBox Grid.Row="15" Text="{Binding Sensor.Purpose, UpdateSourceTrigger=PropertyChanged}" 
+                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Height="80" Margin="0,0,0,10"/>
+
+        <!-- Кнопки сохранения и отмены -->
+        <StackPanel Grid.Row="16" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Сохранить" Width="80" Margin="0,0,10,0" IsDefault="True" Click="SaveButton_Click"/>
+            <Button Content="Отмена" Width="80" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
