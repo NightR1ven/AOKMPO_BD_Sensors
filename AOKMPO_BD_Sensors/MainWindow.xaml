@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AOKMPO_BD_Sensors" d:DataContext="{d:DesignInstance Type=local:Sensor}"
         mc:Ignorable="d"
-       Title="Учет датчиков" Height="600" Width="900"
+       Title="Учет датчиков" Height="720" Width="1080"
         WindowStartupLocation="CenterScreen">
 
     <!-- Основной контейнер -->
@@ -15,9 +15,9 @@
             <RowDefinition Height="Auto"/>
             <!-- Панель поиска -->
             <RowDefinition Height="Auto"/>
-            <!-- Панель инструментов -->
+            <!-- Панель датчиков -->
             <RowDefinition Height="*"/>
-            <!-- Список инструментов -->
+            <!-- Список датчиков -->
             <RowDefinition Height="Auto"/>
             <!-- Статус бар -->
         </Grid.RowDefinitions>
@@ -39,27 +39,31 @@
             <Button Content="Все" Width="80" Margin="0,0,10,10" Command="{Binding ShowAllCommand}"/>
         </StackPanel>
 
-        <!-- Панель инструментов -->
+        <!-- Панель датчиков -->
         <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Left">
             <!-- Кнопки управления -->
             <Button Content="Добавить" Width="80" Margin="0,0,10,10" Command="{Binding AddCommand}"/>
             <Button Content="Редактировать" Width="100" Margin="0,0,10,10" Command="{Binding EditCommand}"/>
             <Button Content="Удалить" Width="80" Margin="0,0,10,10" Command="{Binding DeleteCommand}"/>
+            <Button Content="Экспорт в Excel" Command="{Binding ExportToExcelCommand}" Margin="0,0,10,10"/>
             <Button Content="Экспорт в CSV" Width="100" Margin="0,0,10,10" Command="{Binding ExportCommand}"/>
         </StackPanel>
 
-        <!-- Список инструментов -->
+        <!-- Список датчиков -->
         <ListView Grid.Row="2" ItemsSource="{Binding Sensors}" SelectedItem="{Binding SelectedSensor}" 
-                  MouseDoubleClick="ListView_MouseDoubleClick">
+                  MouseDoubleClick="ListView_MouseDoubleClick" Width="auto">
             <!-- Определение колонок -->
             <ListView.View>
                 <GridView>
                     <!-- Колонки с привязкой к свойствам Sensor -->
-                    <GridViewColumn Header="Название" DisplayMemberBinding="{Binding Name}" Width="150"/>
-                    <GridViewColumn Header="Заводской №" DisplayMemberBinding="{Binding SerialNumber}" Width="100"/>
-                    <GridViewColumn Header="Дата размещения" DisplayMemberBinding="{Binding PlacementDate, StringFormat=dd.MM.yyyy}" Width="100"/>
+                    <GridViewColumn Header="Название СИ" DisplayMemberBinding="{Binding Name}" Width="120"/>
+                    <GridViewColumn Header="Тип СИ №" DisplayMemberBinding="{Binding TypeSensor}" Width="80"/>
+                    <GridViewColumn Header="Заводской №" DisplayMemberBinding="{Binding SerialNumber}" Width="120"/>
+                    <GridViewColumn Header="Пределы изм." DisplayMemberBinding="{Binding MeasurementLimits}" Width="80"/>
+                    <GridViewColumn Header="Кл. точности" DisplayMemberBinding="{Binding ClassForSure}" Width="80"/>
+                    <GridViewColumn Header="Прошлая проверка" DisplayMemberBinding="{Binding PlacementDate, StringFormat=dd.MM.yyyy}" Width="120"/>
                     <!-- Кастомная колонка для срока хранения с цветом -->
-                    <GridViewColumn Header="Срок хранения" Width="120">
+                    <GridViewColumn Header="Будущая проверка" Width="120">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -71,8 +75,8 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Стенд" DisplayMemberBinding="{Binding Workstation}" Width="100"/>
-                    <GridViewColumn Header="Место" DisplayMemberBinding="{Binding Location}" Width="150"/>
+                    <GridViewColumn Header="Хранится" DisplayMemberBinding="{Binding Location}" Width="80"/>
+                    <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="120"/>
                     <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="120"/>
                 </GridView>
             </ListView.View>
@@ -83,20 +87,5 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-
-        <!-- Статус бар внизу окна -->
-        <StatusBar Grid.Row="3">
-            <StatusBarItem>
-                <TextBlock>
-
-                </TextBlock>
-            </StatusBarItem>
-            <StatusBarItem>
-                <TextBlock Margin="10,0,0,0">
-                    <Run Text="Приближающиеся:"/>
-                   
-                </TextBlock>
-            </StatusBarItem>
-        </StatusBar>
     </Grid>
 </Window>

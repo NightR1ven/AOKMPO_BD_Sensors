@@ -19,12 +19,14 @@ namespace AOKMPO_BD_Sensors
 
             // Приватные поля для хранения значений свойств
             private string _name;
+            private string _typeSensor;
             private string _serialNumber;
             private DateTime _placementDate;
             private DateTime _expiryDate;
-            private string _workstation;
             private string _location;
-            private string _purpose;
+            private string _placeOfUse;
+            private string _measurementLimits;
+            private string _classForSure;
 
             /// <summary>
             /// Название датчика
@@ -45,9 +47,18 @@ namespace AOKMPO_BD_Sensors
             }
 
             /// <summary>
-            /// Дата обслуживание датчика
+            /// Тип датчика
             /// </summary>
-            public DateTime PlacementDate
+            public string TypeSensor
+            {
+                get => _typeSensor;
+                set { _typeSensor = value; OnPropertyChanged(nameof(TypeSensor)); }
+            }
+
+        /// <summary>
+        /// Дата обслуживание датчика
+        /// </summary>
+        public DateTime PlacementDate
             {
                 get => _placementDate;
                 set { _placementDate = value; OnPropertyChanged(nameof(PlacementDate)); }
@@ -69,31 +80,40 @@ namespace AOKMPO_BD_Sensors
                 }
             }
 
-            /// <summary>
-            /// Стенд, к которому относится датчик
-            /// </summary>
-            public string Workstation
-            {
-                get => _workstation;
-                set { _workstation = value; OnPropertyChanged(nameof(Workstation)); }
-            }
+        /// <summary>
+        /// Класс точности
+        /// </summary>
+        public string ClassForSure
+        {
+            get => _classForSure;
+            set { _classForSure = value; OnPropertyChanged(nameof(ClassForSure)); }
+        }
 
-            /// <summary>
-            /// Место расположения датчика
-            /// </summary>
-            public string Location
+        /// <summary>
+        /// Место расположения датчика
+        /// </summary>
+        public string Location
             {
                 get => _location;
                 set { _location = value; OnPropertyChanged(nameof(Location)); }
             }
 
             /// <summary>
-            /// Назначение датчика
+            /// Пределы измерения
             /// </summary>
-            public string Purpose
+            public string MeasurementLimits
             {
-                get => _purpose;
-                set { _purpose = value; OnPropertyChanged(nameof(Purpose)); }
+                get => _measurementLimits;
+                set { _measurementLimits = value; OnPropertyChanged(nameof(MeasurementLimits)); }
+            }
+
+        /// <summary>
+        /// Место эксплуатация
+        /// </summary>
+        public string PlaceOfUse
+            {
+                get => _placeOfUse;
+                set { _placeOfUse = value; OnPropertyChanged(nameof(PlaceOfUse)); }
             }
 
 
@@ -107,9 +127,9 @@ namespace AOKMPO_BD_Sensors
 
                     TimeSpan remaining = ExpiryDate - DateTime.Today;
 
-                    if (remaining.TotalDays <= 30)
-                        return Brushes.Red; // Менее месяца - розовый
-                    else if (remaining.TotalDays <= 365)
+                    if (remaining.TotalDays <= 14)
+                        return Brushes.Red; // Менее 2 недель
+                    else if (remaining.TotalDays <= 30)
                         return Brushes.LightYellow; // Менее года - желтый
                     else
                         return Brushes.LightGreen; // Более года - зеленый

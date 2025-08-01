@@ -29,7 +29,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Обработчик двойного клика по списку инструментов
+        /// Обработчик двойного клика по списку датчиков
         /// </summary>
         private void ListView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

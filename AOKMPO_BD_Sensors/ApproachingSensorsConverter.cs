@@ -13,7 +13,7 @@ namespace AOKMPO_BD_Sensors
      public class ApproachingSensorsConverter : IValueConverter
     {
         /// <summary>
-        /// Конвертация - подсчет подходящим по срокам инструментов
+        /// Конвертация - подсчет подходящим по срокам датчики
         /// </summary>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

@@ -1,7 +1,10 @@
-﻿using System;
+﻿using AOKMPO_BD_Sensors.Serviec;
+using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,7 +37,7 @@ namespace AOKMPO_BD_Sensors
         public ObservableCollection<Sensor> Sensors { get; } = new ObservableCollection<Sensor>();
 
         /// <summary>
-        /// Выбранный инструмент
+        /// Выбранный датчик
         /// </summary>
         public Sensor SelectedSensor
         {
@@ -60,6 +63,7 @@ namespace AOKMPO_BD_Sensors
         public ICommand ShowExpiredCommand { get; } // Показать просроченные
         public ICommand ShowExpiringCommand { get; } // Показать истекающие
         public ICommand ExportCommand { get; }    // Экспорт в CSV
+        public ICommand ExportToExcelCommand { get; }
 
         /// <summary>
         /// Конструктор ViewModel
@@ -74,6 +78,8 @@ namespace AOKMPO_BD_Sensors
             ShowAllCommand = new RelayCommand(ShowAllSensors);
             ShowExpiringCommand = new RelayCommand((ShowApproachingSensors));
             ExportCommand = new RelayCommand(ExportSensors);
+            ExportToExcelCommand = new RelayCommand(_ => ExportToExcel());
+
 
             // Загрузка данных и проверка сроков
             LoadData();
@@ -81,17 +87,17 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Проверка, можно ли редактировать или удалять инструмент
-        /// (должен быть выбран хотя бы один инструмент)
+        /// Проверка, можно ли редактировать или удалять датчик
+        /// (должен быть выбран хотя бы один датчик)
         /// </summary>
         private bool CanEditOrDelete(object obj) => SelectedSensor != null;
 
         /// <summary>
-        /// Добавление нового инструмента
+        /// Добавление нового датчика
         /// </summary>
         private void AddSensor(object obj)
         {
-            // Создаем диалоговое окно с новым инструментом
+            // Создаем диалоговое окно с новым датчиком
             var dialog = new SensorEditDialog(new Sensor
             {
                 PlacementDate = DateTime.Today,
@@ -101,7 +107,7 @@ namespace AOKMPO_BD_Sensors
             // Если пользователь нажал "Сохранить"
             if (dialog.ShowDialog() == true)
             {
-                // Добавляем инструмент в коллекцию
+                // Добавляем датчик в коллекцию
                 Sensors.Add(dialog.Sensor);
                 // Сохраняем изменения
                 SaveData();
@@ -109,11 +115,11 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Редактирование выбранного инструмента
+        /// Редактирование выбранного датчика
         /// </summary>
         private void EditSensor(object obj)
         {
-            // Создаем диалоговое окно с выбранным инструментом
+            // Создаем диалоговое окно с выбранным датчикок
             var dialog = new SensorEditDialog(SelectedSensor);
             if (dialog.ShowDialog() == true)
             {
@@ -123,7 +129,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Удаление выбранного инструмента
+        /// Удаление выбранного датчика
         /// </summary>
         private void DeleteSensor(object obj)
         {
@@ -131,7 +137,7 @@ namespace AOKMPO_BD_Sensors
             if (MessageBox.Show("Удалить выбранный датчик?", "Подтверждение",
                 MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                // Удаляем инструмент из коллекции
+                // Удаляем датчик из коллекции
                 Sensors.Remove(SelectedSensor);
                 // Сохраняем изменения
                 SaveData();
@@ -139,7 +145,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Показать все инструменты (сброс фильтров)
+        /// Показать все датчики (сброс фильтров)
         /// </summary>
         private void ShowAllSensors(object obj)
         {
@@ -147,7 +153,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Показать только просроченные инструменты
+        /// Показать только просроченные датчики
         /// </summary>
         private void ShowApproachingSensors(object obj)
         {
@@ -155,7 +161,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Показать инструменты с истекающим сроком
+        /// Показать датчики с истекающим сроком
         /// </summary>
         private void ShowExpiringSensors(object obj)
         {
@@ -163,7 +169,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Фильтрация инструментов по тексту поиска
+        /// Фильтрация датчиков по тексту поиска
         /// </summary>
         private void FilterSensors()
         {
@@ -191,9 +197,11 @@ namespace AOKMPO_BD_Sensors
                 var filtered = Sensors.Where(t =>
                     t.Name.ToLower().Contains(searchTerm) ||
                     t.SerialNumber.ToLower().Contains(searchTerm) ||
-                    t.Workstation.ToLower().Contains(searchTerm) ||
+                    t.PlaceOfUse.ToLower().Contains(searchTerm) ||
                     t.Location.ToLower().Contains(searchTerm) ||
-                    t.Purpose.ToLower().Contains(searchTerm)).ToList();
+                    t.TypeSensor.ToLower().Contains(searchTerm) ||
+                    t.ClassForSure.ToLower().Contains(searchTerm) ||
+                    t.MeasurementLimits.ToLower().Contains(searchTerm));
 
                 // Обновляем коллекцию с учетом фильтра
                 Sensors.Clear();
@@ -224,13 +232,14 @@ namespace AOKMPO_BD_Sensors
                         // Заголовки столбцов
                         writer.WriteLine("Название;Заводской номер;Дата размещения;Срок хранения;Стенд;Место хранения;Количество;Назначение;Статус");
 
-                        // Данные по каждому инструменту
+                        // Данные по каждому датчику
                         foreach (var sensor in Sensors)
                         {
                             writer.WriteLine(
-                                $"\"{sensor.Name}\";\"{sensor.SerialNumber}\";\"{sensor.PlacementDate:dd.MM.yyyy}\";" +
-                                $"\"{sensor.ExpiryDate:dd.MM.yyyy}\";\"{sensor.Workstation}\";\"{sensor.Location}\";" +
-                                $"\"{sensor.Purpose}\";\"{sensor.ExpiryStatus}\"");
+                                $"\"{sensor.Name}\";\"{sensor.TypeSensor}\";\"{sensor.SerialNumber}\";" +
+                                $"\"{sensor.MeasurementLimits}\";\"{sensor.PlacementDate:dd.MM.yyyy}\";\"{sensor.ClassForSure}\";"+
+                                $"\"{sensor.ExpiryDate:dd.MM.yyyy}\";\"{sensor.Location}\";" +
+                                $"\"{sensor.PlaceOfUse}\";\"{sensor.ExpiryStatus}\"");
                         }
                     }
 
@@ -271,6 +280,35 @@ namespace AOKMPO_BD_Sensors
             }
         }
 
+        private void ExportToExcel()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Excel files (*.xlsx)|*.xlsx",
+                FileName = $"Инструменты_{DateTime.Now:yyyyMMdd_HHmm}.xlsx",
+                Title = "Экспорт в Excel"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    ExcelExportService.ExportSensorsToExcel(Sensors, dialog.FileName);
+                    
+                    if (MessageBox.Show("Экспорт завершен успешно! Открыть файл?", 
+                        "Готово", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка экспорта: {ex.Message}", "Ошибка", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
         /// <summary>
         /// Сохранение данных в XML файл
         /// </summary>
@@ -292,7 +330,7 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
-        /// Проверка просроченных и истекающих инструментов
+        /// Проверка просроченных и истекающих датчиков
         /// Показывает предупреждение, если такие есть
         /// </summary>
         private void CheckExpiredSensors()
@@ -335,6 +373,7 @@ namespace AOKMPO_BD_Sensors
     {
         private readonly Action<object> _execute;
         private readonly Predicate<object> _canExecute;
+        private Action exportToExcel;
 
         /// <summary>
         /// Конструктор команды
@@ -365,5 +404,7 @@ namespace AOKMPO_BD_Sensors
             add => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
         }
+
+        
     }
 }
