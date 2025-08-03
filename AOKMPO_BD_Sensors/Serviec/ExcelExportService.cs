@@ -15,6 +15,13 @@ namespace AOKMPO_BD_Sensors.Serviec
             {
                 var worksheet = workbook.Worksheets.Add("Перечень средств измерений");
 
+                // Настройка стилей
+                var headerStyle = workbook.Style;
+                headerStyle.Font.FontName = "Times New Roman";
+                headerStyle.Font.FontSize = 12;
+                headerStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerStyle.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
                 // Шапка отчета
                 var header = worksheet.Range("A1:E1");
                 header.Merge().Value = "ПЕРЕЧЕНЬ";
