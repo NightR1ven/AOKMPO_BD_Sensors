@@ -146,7 +146,7 @@ namespace AOKMPO_BD_Sensors
                     TimeSpan remaining = ExpiryDate - DateTime.Today;
 
                     if (remaining.TotalDays <= 0)
-                        return "Годен"; // Убираем статус "Просрочено"
+                        return "Просрочено";
                     else if (remaining.TotalDays <= 30)
                         return $"Осталось {remaining.Days} дней";
                     else if (remaining.TotalDays <= 365)

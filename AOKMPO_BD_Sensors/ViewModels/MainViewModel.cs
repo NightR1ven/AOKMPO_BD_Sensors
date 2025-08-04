@@ -1,4 +1,5 @@
-﻿using AOKMPO_BD_Sensors.Serviec;
+﻿using AOKMPO_BD_Sensors.Service;
+using AOKMPO_BD_Sensors.Service;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,8 @@ namespace AOKMPO_BD_Sensors
         public ICommand ShowExpiredCommand { get; } // Показать просроченные
         public ICommand ShowExpiringCommand { get; } // Показать истекающие
         public ICommand ExportCommand { get; }    // Экспорт в CSV
-        public ICommand ExportToExcelCommand { get; }
+        public ICommand ExportToExcelCommand { get; } // Экспорт в Excel
+        public ICommand ImportFromExcelCommand { get; } // Импорт в Excel
 
         /// <summary>
         /// Конструктор ViewModel
@@ -79,6 +81,7 @@ namespace AOKMPO_BD_Sensors
             ShowExpiringCommand = new RelayCommand((ShowApproachingSensors));
             ExportCommand = new RelayCommand(ExportSensors);
             ExportToExcelCommand = new RelayCommand(_ => ExportToExcel());
+            ImportFromExcelCommand = new RelayCommand(_ => ImportFromExcel());
 
 
             // Загрузка данных и проверка сроков
@@ -184,7 +187,6 @@ namespace AOKMPO_BD_Sensors
             if (SearchText == "status:approaching")
             {
                 var filtered = Sensors.Where(t =>
-                    t.ExpiryDate >= DateTime.Today &&
                     t.ExpiryDate <= DateTime.Today.AddDays(30)).ToList();
                 Sensors.Clear();
                 foreach (var sensor in filtered)
@@ -280,12 +282,15 @@ namespace AOKMPO_BD_Sensors
             }
         }
 
+        /// <summary>
+        /// Экспорт данных Xlslx файла
+        /// </summary>
         private void ExportToExcel()
         {
             var dialog = new SaveFileDialog
             {
                 Filter = "Excel files (*.xlsx)|*.xlsx",
-                FileName = $"Инструменты_{DateTime.Now:yyyyMMdd_HHmm}.xlsx",
+                FileName = $"ПереченьСИ_{DateTime.Now:yyyyMMdd_HHmm}.xlsx",
                 Title = "Экспорт в Excel"
             };
 
@@ -308,6 +313,39 @@ namespace AOKMPO_BD_Sensors
                 }
             }
         }
+
+        /// <summary>
+        /// Импорт данных Xlslx файла
+        /// </summary>
+        private void ImportFromExcel()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Excel files (*.xlsx)|*.xlsx",
+                Title = "Импорт из Excel"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var importedSensors = ExcelImportService.ImportSensorFromExcel(dialog.FileName);
+                    Sensors.Clear();
+                    foreach (var sensor in importedSensors)
+                    {
+                        Sensors.Add(sensor);
+                    }
+                    MessageBox.Show($"Успешно импортировано {importedSensors.Count} средств измерения",
+                        "Импорт завершен", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка импорта: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
 
         /// <summary>
         /// Сохранение данных в XML файл
