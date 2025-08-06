@@ -168,12 +168,12 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Cell(footerRow + 14, 4).Value = "___________________________";
                 worksheet.Cell(footerRow + 14, 7).Value = "___________________________";
 
-                // Объединяем ячейки для подписи
+                //Объединяем ячейки для подписи
                 worksheet.Range(footerRow + 2, 2, footerRow + 2, 10).Merge();
                 worksheet.Range(footerRow + 4, 2, footerRow + 4, 10).Merge();
                 worksheet.Range(footerRow + 6, 2, footerRow + 6, 10).Merge();
 
-                worksheet.Range(footerRow + 8, 2, footerRow + 8, 13).Merge();
+                worksheet.Range(footerRow + 8, 2, footerRow + 8, 3).Merge();
                 worksheet.Range(footerRow + 10, 2, footerRow + 10, 3).Merge();
                 worksheet.Range(footerRow + 12, 2, footerRow + 12, 3).Merge();
                 worksheet.Range(footerRow + 14, 2, footerRow + 14, 3).Merge();

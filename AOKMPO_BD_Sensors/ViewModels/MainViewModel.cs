@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -32,6 +33,10 @@ namespace AOKMPO_BD_Sensors
         // Текст для поиска
         private string _searchText;
 
+        //Стартовые данные поиска по дате
+        private DateTime _startDate = DateTime.Today.AddMonths(-1);
+        private DateTime _endDate = DateTime.Today.AddMonths(1);
+
         /// <summary>
         /// Коллекция датчиков (привязана к ListView)
         /// </summary>
@@ -44,6 +49,24 @@ namespace AOKMPO_BD_Sensors
         {
             get => _selectedSensor;
             set { _selectedSensor = value; OnPropertyChanged(nameof(SelectedSensor)); }
+        }
+
+        /// <summary>
+        /// Стартовая дата
+        /// </summary>
+        public DateTime StartDate
+        {
+            get => _startDate;
+            set { _startDate = value; OnPropertyChanged(nameof(StartDate)); }
+        }
+
+        /// <summary>
+        /// Последняя дата
+        /// </summary>
+        public DateTime EndDate
+        {
+            get => _endDate;
+            set { _endDate = value; OnPropertyChanged(nameof(EndDate)); }
         }
 
         /// <summary>
@@ -67,6 +90,8 @@ namespace AOKMPO_BD_Sensors
         public ICommand ExportToExcelCommand { get; } // Экспорт в Excel
         public ICommand ImportFromExcelCommand { get; } // Импорт в Excel
 
+        public ICommand FilterByDateCommand { get; } // Фильтр по дате
+
         /// <summary>
         /// Конструктор ViewModel
         /// Инициализирует команды и загружает данные
@@ -82,7 +107,7 @@ namespace AOKMPO_BD_Sensors
             ExportCommand = new RelayCommand(ExportSensors);
             ExportToExcelCommand = new RelayCommand(_ => ExportToExcel());
             ImportFromExcelCommand = new RelayCommand(_ => ImportFromExcel());
-
+            FilterByDateCommand = new RelayCommand(FilterByDateRange);
 
             // Загрузка данных и проверка сроков
             LoadData();
@@ -94,6 +119,21 @@ namespace AOKMPO_BD_Sensors
         /// (должен быть выбран хотя бы один датчик)
         /// </summary>
         private bool CanEditOrDelete(object obj) => SelectedSensor != null;
+
+        /// <summary>
+        /// Фильтр по дате
+        /// </summary>
+        private void FilterByDateRange(object obj)
+        {
+            var filtered = Sensors.Where(sensor =>
+                sensor.ExpiryDate >= StartDate &&
+                sensor.ExpiryDate <= EndDate
+            ).ToList();
+
+            Sensors.Clear();
+            foreach (var sensor in filtered)
+                Sensors.Add(sensor);
+        }
 
         /// <summary>
         /// Добавление нового датчика
@@ -196,14 +236,20 @@ namespace AOKMPO_BD_Sensors
             else
             {
                 var searchTerm = SearchText.ToLower();
-                var filtered = Sensors.Where(t =>
-                    t.Name.ToLower().Contains(searchTerm) ||
-                    t.SerialNumber.ToLower().Contains(searchTerm) ||
-                    t.PlaceOfUse.ToLower().Contains(searchTerm) ||
-                    t.Location.ToLower().Contains(searchTerm) ||
-                    t.TypeSensor.ToLower().Contains(searchTerm) ||
-                    t.ClassForSure.ToLower().Contains(searchTerm) ||
-                    t.MeasurementLimits.ToLower().Contains(searchTerm));
+                var filtered = Sensors.Where(sensor =>
+                    sensor.Name.ToLower().Contains(searchTerm) ||
+                    sensor.SerialNumber.ToLower().Contains(searchTerm) ||
+                    sensor.TypeSensor.ToLower().Contains(searchTerm) ||
+                    sensor.MeasurementLimits.ToLower().Contains(searchTerm) ||
+                    sensor.ClassForSure.ToLower().Contains(searchTerm) ||
+                    sensor.Location.ToLower().Contains(searchTerm) ||
+                    sensor.PlaceOfUse.ToLower().Contains(searchTerm) ||
+                    sensor.ExpiryStatus.ToLower().Contains(searchTerm) ||
+                    // Поиск по цифрам в серийном номере (например, "436" найдёт "SN436-001")
+                    Regex.IsMatch(sensor.SerialNumber, searchTerm) ||
+                    // Поиск по дате в формате "dd.MM.yyyy" или "yyyy-MM-dd"
+                    sensor.PlacementDate.ToString("dd.MM.yyyy").Contains(searchTerm) ||
+                    sensor.ExpiryDate.ToString("dd.MM.yyyy").Contains(searchTerm)).ToList();
 
                 // Обновляем коллекцию с учетом фильтра
                 Sensors.Clear();
@@ -337,6 +383,7 @@ namespace AOKMPO_BD_Sensors
                     }
                     MessageBox.Show($"Успешно импортировано {importedSensors.Count} средств измерения",
                         "Импорт завершен", MessageBoxButton.OK, MessageBoxImage.Information);
+                    SaveData();
                 }
                 catch (Exception ex)
                 {

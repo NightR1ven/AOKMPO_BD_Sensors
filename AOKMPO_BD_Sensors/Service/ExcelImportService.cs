@@ -29,10 +29,21 @@ namespace AOKMPO_BD_Sensors.Service
 
                 foreach (var row in rows)
                 {
-                    if (row.Cell(2).IsEmpty()) continue;
+                    // Пропускаем пустые строки или строки без данных (например, подписи в конце)
+                    if (row.Cell(2).IsEmpty() ||
+                        row.Cell(7).IsEmpty() ||
+                        row.Cell(8).IsEmpty())
+                        continue;
 
                     try
                     {
+                        // Пытаемся распарсить даты, если не получается — пропускаем строку
+                        if (!DateTime.TryParse(row.Cell(7).GetString(), out var placementDate) ||
+                            !DateTime.TryParse(row.Cell(8).GetString(), out var expiryDate))
+                        {
+                            continue;
+                        }
+
                         sensors.Add(new Sensor
                         {
                             Name = row.Cell(2).GetString(),

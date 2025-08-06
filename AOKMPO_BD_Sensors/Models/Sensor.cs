@@ -128,7 +128,7 @@ namespace AOKMPO_BD_Sensors
                     TimeSpan remaining = ExpiryDate - DateTime.Today;
 
                     if (remaining.TotalDays <= 14)
-                        return Brushes.Red; // Менее 2 недель
+                        return Brushes.OrangeRed; // Менее 2 недель
                     else if (remaining.TotalDays <= 30)
                         return Brushes.LightYellow; // Менее года - желтый
                     else
