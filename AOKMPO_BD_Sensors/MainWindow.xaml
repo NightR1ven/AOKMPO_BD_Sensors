@@ -62,14 +62,14 @@
             <ListView.View>
                 <GridView>
                     <!-- Колонки с привязкой к свойствам Sensor -->
-                    <GridViewColumn Header="Название СИ" DisplayMemberBinding="{Binding Name}" Width="120"/>
+                    <GridViewColumn Header="Название СИ" DisplayMemberBinding="{Binding Name}" Width="138"/>
                     <GridViewColumn Header="Тип СИ №" DisplayMemberBinding="{Binding TypeSensor}" Width="80"/>
                     <GridViewColumn Header="Заводской №" DisplayMemberBinding="{Binding SerialNumber}" Width="120"/>
                     <GridViewColumn Header="Пределы изм." DisplayMemberBinding="{Binding MeasurementLimits}" Width="80"/>
                     <GridViewColumn Header="Кл. точности" DisplayMemberBinding="{Binding ClassForSure}" Width="80"/>
-                    <GridViewColumn Header="Прошлая проверка" DisplayMemberBinding="{Binding PlacementDate, StringFormat=dd.MM.yyyy}" Width="120"/>
+                    <GridViewColumn Header="Прошлая проверка" DisplayMemberBinding="{Binding PlacementDate, StringFormat=dd.MM.yyyy}" Width="110"/>
                     <!-- Кастомная колонка для срока хранения с цветом -->
-                    <GridViewColumn Header="Будущая проверка" Width="120">
+                    <GridViewColumn Header="Будущая проверка" Width="110">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
@@ -82,8 +82,8 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Хранится" DisplayMemberBinding="{Binding Location}" Width="80"/>
-                    <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="120"/>
-                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="140"/>
+                    <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="90" />
+                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="130"/>
                 </GridView>
             </ListView.View>
             <!-- Стиль для элементов списка - цвет фона по сроку -->
