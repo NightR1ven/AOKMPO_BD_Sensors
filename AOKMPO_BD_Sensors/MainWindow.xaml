@@ -25,10 +25,10 @@
         </Grid.RowDefinitions>
         
         <!-- Индикатор загрузки -->
-        <StackPanel Grid.Row="0" Orientation="Vertical" 
+        <StackPanel Grid.Row="3" Orientation="Vertical" HorizontalAlignment="Right"
                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <TextBlock Text="{Binding ProgressMessage}" Margin="0 0 0 5"/>
-            <ProgressBar Value="{Binding ProgressValue}" Height="20" Maximum="100"/>
+            <ProgressBar Value="{Binding ProgressValue}" Height="20" Maximum="100" Width="310"/>
         </StackPanel>
 
         <!-- Панель поиска -->
