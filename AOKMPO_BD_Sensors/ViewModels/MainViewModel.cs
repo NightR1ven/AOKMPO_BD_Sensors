@@ -43,8 +43,8 @@ using System.Xml.Serialization;
             private double _progressValue;
             private string _progressMessage;
 
-        // Объект для потокобезопасной работы с коллекцией
-        private readonly object _collectionLock = new object();
+            // Объект для потокобезопасной работы с коллекцией
+            private readonly object _collectionLock = new object();
 
             /// <summary>
             /// Коллекция датчиков (привязана к ListView)
@@ -56,30 +56,30 @@ using System.Xml.Serialization;
             public ICollectionView SensorsView => _sensorsView ??= CollectionViewSource.GetDefaultView(Sensors);
 
 
-        // Cвойства для отображения прогресса
+            // Cвойства для отображения прогресса
 
-        public bool IsLoading
-        {
+            public bool IsLoading
+            {
             get => _isLoading;
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); } // Уведомление UI об изменении состояния
-        }
+            }
 
-        public double ProgressValue
-        {
-            get => _progressValue;
-            set { _progressValue = value; OnPropertyChanged(nameof(ProgressValue)); }
-        }
+            public double ProgressValue
+            {
+                get => _progressValue;
+                set { _progressValue = value; OnPropertyChanged(nameof(ProgressValue)); }
+            }
 
-        public string ProgressMessage
-        {
+            public string ProgressMessage
+            {
             get => _progressMessage;
             set { _progressMessage = value; OnPropertyChanged(nameof(ProgressMessage)); }
-        }
+            }
 
-        /// <summary>
-        /// Выбранный датчик
-        /// </summary>
-        public Sensor SelectedSensor
+            /// <summary>
+            /// Выбранный датчик
+            /// </summary>
+            public Sensor SelectedSensor
             {
                 get => _selectedSensor;
                 set { _selectedSensor = value; OnPropertyChanged(nameof(SelectedSensor)); }
@@ -143,11 +143,14 @@ using System.Xml.Serialization;
                 ImportFromExcelCommand = new RelayCommand(_ => ImportFromExcel());
                 FilterByDateCommand = new RelayCommand(FilterByDateRange);
 
-                // Загрузка данных и проверка сроков
-                //LoadData();
-                CheckExpiredSensors();
-                _ = LoadDataAsync();
-        }
+                _ = LoadDataAndCheckExpiredAsync();
+            }
+
+            private async Task LoadDataAndCheckExpiredAsync()
+            {
+                await LoadDataAsync();  // Сначала загружаем данные
+                CheckExpiredSensors();  // Проверяем просроченные датчики
+            }
 
             /// <summary>
             /// Проверка, можно ли редактировать или удалять датчик
@@ -238,13 +241,6 @@ using System.Xml.Serialization;
                 SearchText = "status:approaching"; // Специальное значение для фильтрации
             }
 
-            /// <summary>
-            /// Показать датчики с истекающим сроком
-            /// </summary>
-            private void ShowExpiringSensors(object obj)
-            {
-                SearchText = "status:expiring"; // Специальное значение для фильтрации
-            }
 
         // Метод асинхронной загрузки с прогрессом
         private async Task LoadDataAsync()
@@ -325,7 +321,7 @@ using System.Xml.Serialization;
                 // Если строка поиска пустая - загружаем все данные
                 if (string.IsNullOrWhiteSpace(SearchText))
                 {
-                    LoadData();
+                    LoadDataAsync();
                     return;
                 }
 
@@ -403,32 +399,6 @@ using System.Xml.Serialization;
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Ошибка при экспорте: {ex.Message}", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Загрузка данных из XML файла
-            /// </summary>
-            private void LoadData()
-            {
-                if (File.Exists(DataFilePath))
-                {
-                    try
-                    {
-                        var serializer = new XmlSerializer(typeof(List<Sensor>));
-                        using (var stream = File.OpenRead(DataFilePath))
-                        {
-                            var data = (List<Sensor>)serializer.Deserialize(stream);
-                            Sensors.Clear();
-                            foreach (var sensor in data)
-                                Sensors.Add(sensor);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка",
                             MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
