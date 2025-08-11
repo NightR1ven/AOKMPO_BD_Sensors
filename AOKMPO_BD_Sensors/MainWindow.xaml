@@ -67,8 +67,11 @@
         <!-- Список датчиков -->
         <ListView Grid.Row="2" ItemsSource="{Binding Sensors}" SelectedItem="{Binding SelectedSensor}" 
                   MouseDoubleClick="ListView_MouseDoubleClick" Width="auto" VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  >
+                  VirtualizingStackPanel.VirtualizationMode="Recycling">
+            <!-- Удаление на клавишу Delete -->
+            <ListView.InputBindings>
+                <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
+            </ListView.InputBindings>
             <!-- Определение колонок -->
             <ListView.View>
                 <GridView>

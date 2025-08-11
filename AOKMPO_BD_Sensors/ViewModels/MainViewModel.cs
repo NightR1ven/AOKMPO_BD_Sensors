@@ -214,9 +214,12 @@ using System.Xml.Serialization;
             /// </summary>
             private void DeleteSensor(object obj)
             {
+                if (obj is KeyEventArgs keyArgs && keyArgs.Key != Key.Delete)
+                return;
+
                 // Запрос подтверждения
                 if (MessageBox.Show("Удалить выбранный датчик?", "Подтверждение",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     // Удаляем датчик из коллекции
                     Sensors.Remove(SelectedSensor);
@@ -225,10 +228,10 @@ using System.Xml.Serialization;
                 }
             }
 
-            /// <summary>
-            /// Показать все датчики (сброс фильтров)
-            /// </summary>
-            private void ShowAllSensors(object obj)
+        /// <summary>
+        /// Показать все датчики (сброс фильтров)
+        /// </summary>
+        private void ShowAllSensors(object obj)
             {
                 SearchText = string.Empty; // Очистка текста поиска загрузит все данные
             }
