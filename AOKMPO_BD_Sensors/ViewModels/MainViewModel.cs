@@ -51,14 +51,26 @@ using System.Xml.Serialization;
             /// </summary>
             public ObservableCollection<Sensor> Sensors { get; } = new ObservableCollection<Sensor>();
 
-            // Заменена обычная коллекция на ICollectionView для эффективной фильтрации
-            private ICollectionView _sensorsView;
-            public ICollectionView SensorsView => _sensorsView ??= CollectionViewSource.GetDefaultView(Sensors);
+        // Заменена обычная коллекция на ICollectionView для эффективной фильтрации
+        // ИЗМЕНЕНИЕ: Добавлена ленивая инициализация и фильтр по умолчанию
+        private ICollectionView _sensorsView;
+        public ICollectionView SensorsView
+        {
+            get
+            {
+                if (_sensorsView == null)
+                {
+                    _sensorsView = CollectionViewSource.GetDefaultView(Sensors);
+                    _sensorsView.Filter = SensorFilter;
+                }
+                return _sensorsView;
+            }
+        }
 
 
-            // Cвойства для отображения прогресса
+        // Cвойства для отображения прогресса
 
-            public bool IsLoading
+        public bool IsLoading
             {
             get => _isLoading;
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); } // Уведомление UI об изменении состояния
@@ -103,15 +115,19 @@ using System.Xml.Serialization;
                 set { _endDate = value; OnPropertyChanged(nameof(EndDate)); }
             }
 
-            /// <summary>
-            /// Текст для поиска датчиков
-            /// При изменении автоматически фильтрует список
-            /// </summary>
-            public string SearchText
+        /// <summary>
+        /// Текст для поиска датчиков
+        /// При изменении автоматически фильтрует список
+        /// </summary>
+        public string SearchText
+        {
+            get => _searchText;
+            set
             {
-                get => _searchText;
-                set { _searchText = value; OnPropertyChanged(nameof(SearchText)); FilterSensors(); }
+                _searchText = value; OnPropertyChanged(nameof(SearchText)); ApplyFilters();
+                // ИЗМЕНЕНИЕ: Заменен FilterSensors на ApplyFilters
             }
+        }
 
             // Команды для привязки к кнопкам в UI
             public ICommand AddCommand { get; }       // Добавить датчик
@@ -144,9 +160,207 @@ using System.Xml.Serialization;
                 FilterByDateCommand = new RelayCommand(FilterByDateRange);
 
                 _ = LoadDataAndCheckExpiredAsync();
+
+            this.PropertyChanged += (s, e) =>
+            {
+                if ((e.PropertyName == nameof(StartDate) ||
+                    (e.PropertyName == nameof(EndDate))))
+                {
+                    // При ручном изменении дат переключаем на custom период
+                    if (_selectedPeriod != "custom")
+                    {
+                        _selectedPeriod = "custom";
+                        OnPropertyChanged(nameof(SelectedPeriod));
+                    }
+                    ApplyFilters();
+                }
+            };
+        }
+
+        /// <summary>
+        /// Универсальный фильтр для датчиков, объединяющий все условия
+        /// С учетом возможных null-значений в полях датчика
+        /// </summary>
+        private bool SensorFilter(object item)
+        {
+            if (item is not Sensor sensor) return false;
+
+            // Применяем фильтр по дате
+            bool dateMatch = FilterByDate(sensor);
+
+            // Если нет текста для поиска - возвращаем только результат фильтрации по дате
+            if (string.IsNullOrEmpty(SearchText))
+                return dateMatch;
+
+            // Специальный фильтр для истекающих датчиков
+            if (SearchText == "status:approaching")
+                return dateMatch && sensor.ExpiryDate <= DateTime.Today.AddDays(30);
+
+            // Стандартный текстовый поиск
+            var searchTerm = SearchText.ToLower();
+
+            bool textMatch =
+                (sensor.Name?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.SerialNumber?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.TypeSensor?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.MeasurementLimits?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.ClassForSure?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.Location?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.PlaceOfUse?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.ExpiryStatus?.ToLower().Contains(searchTerm) ?? false) ||
+                (sensor.SerialNumber != null && Regex.IsMatch(sensor.SerialNumber, searchTerm)) ||
+                sensor.PlacementDate.ToString("dd.MM.yyyy").Contains(searchTerm) ||
+                sensor.ExpiryDate.ToString("dd.MM.yyyy").Contains(searchTerm);
+
+            return dateMatch && textMatch;
+        }
+
+        /// <summary>
+        /// Фильтрация датчика по диапазону дат с проверкой на значения по умолчанию
+        /// </summary>
+        private bool FilterByDate(Sensor sensor)
+        {
+            // Для периода "Все даты" не фильтруем
+            if (SelectedPeriod == "all")
+            {
+                return true;
+            }
+                
+
+            return sensor.ExpiryDate >= StartDate && sensor.ExpiryDate <= EndDate;
+        }
+
+        /// <summary>
+        /// Применить текущие фильтры к коллекции
+        /// НОВЫЙ МЕТОД: Заменяет прямое изменение коллекции
+        /// </summary>
+        
+        /// <summary>
+/// Флаг, указывающий применять ли фильтр по дате
+/// </summary>
+private bool _useDateFilter;
+public bool UseDateFilter
+{
+    get => _useDateFilter;
+    set
+    {
+        _useDateFilter = value;
+        OnPropertyChanged(nameof(UseDateFilter));
+        ApplyFilters();
+    }
+}
+
+/// <summary>
+/// Доступные предустановленные периоды для фильтрации
+/// </summary>
+    public Dictionary<string, DatePeriod> DatePeriods { get; } = new()
+    {
+        ["all"] = new DatePeriod
+        {
+            Name = "Все даты",
+            Action = (vm) => vm.SetFullDateRange()
+        },
+        ["month"] = new DatePeriod
+        {
+            Name = "Текущий месяц",
+            Action = (vm) => vm.SetCurrentMonthRange()
+        },
+        ["year"] = new DatePeriod
+        {
+            Name = "Текущий год",
+            Action = (vm) => vm.SetCurrentYearRange()
+        },
+        ["custom"] = new DatePeriod
+        {
+            Name = "Произвольный диапазон",
+            Action = (vm) => { }
+        }
+    };
+
+        private string _selectedPeriod = "all";
+        public string SelectedPeriod
+        {
+            get => _selectedPeriod;
+            set
+            {
+                _selectedPeriod = value;
+                OnPropertyChanged(nameof(SelectedPeriod));
+
+                // Очищаем поисковую строку при изменении периода
+                SearchText = string.Empty;
+
+                if (DatePeriods.TryGetValue(value, out var period))
+                {
+                    period.Action(this);
+                    ApplyFilters();
+                }
+            }
+        }
+        /// <summary>
+        /// Класс для описания периода фильтрации
+        /// </summary>
+        public class DatePeriod
+        {
+            public string Name { get; set; }
+            public Action<MainViewModel> Action { get; set; }
+        }
+        /// <summary>
+        /// Обновляет диапазон дат, чтобы включить все имеющиеся датчики
+        /// </summary>
+        public void SetFullDateRange()
+        {
+            if (Sensors.Count == 0)
+            {
+                StartDate = DateTime.Today.AddMonths(-1);
+                EndDate = DateTime.Today.AddMonths(1);
+                return;
             }
 
-            private async Task LoadDataAndCheckExpiredAsync()
+            StartDate = Sensors.Min(s => s.ExpiryDate);
+            EndDate = Sensors.Max(s => s.ExpiryDate);
+
+            // Добавляем небольшой запас по краям
+            StartDate = StartDate.AddDays(-7);
+            EndDate = EndDate.AddDays(7);
+
+            OnPropertyChanged(nameof(StartDate));
+            OnPropertyChanged(nameof(EndDate));
+        }
+
+        // <summary>
+        /// Устанавливает диапазон текущего месяца
+        /// </summary>
+        public void SetCurrentMonthRange()
+        {
+            var today = DateTime.Today;
+            StartDate = new DateTime(today.Year, today.Month, 1);
+            EndDate = StartDate.AddMonths(1).AddDays(-1);
+
+            OnPropertyChanged(nameof(StartDate));
+            OnPropertyChanged(nameof(EndDate));
+        }
+
+        /// <summary>
+        /// Устанавливает диапазон текущего года
+        /// </summary>
+        public void SetCurrentYearRange()
+        {
+            var today = DateTime.Today;
+            StartDate = new DateTime(today.Year, 1, 1);
+            EndDate = new DateTime(today.Year, 12, 31);
+
+            OnPropertyChanged(nameof(StartDate));
+            OnPropertyChanged(nameof(EndDate));
+        }
+
+        private void ApplyFilters()
+        {
+            if (_sensorsView != null)
+            {
+                _sensorsView.Refresh();
+            }
+        }
+        private async Task LoadDataAndCheckExpiredAsync()
             {
                 await LoadDataAsync();  // Сначала загружаем данные
                 CheckExpiredSensors();  // Проверяем просроченные датчики
@@ -163,15 +377,26 @@ using System.Xml.Serialization;
             /// </summary>
             private void FilterByDateRange(object obj)
             {
-                var filtered = Sensors.Where(sensor =>
-                    sensor.ExpiryDate >= StartDate &&
-                    sensor.ExpiryDate <= EndDate
-                ).ToList();
+            // Применяем фильтр через механизм ICollectionView
+            ApplyFilters();
 
-                Sensors.Clear();
-                foreach (var sensor in filtered)
-                    Sensors.Add(sensor);
+            // Можно добавить дополнительную логику, например:
+            if (obj is string period)
+            {
+                switch (period)
+                {
+                    case "month":
+                        StartDate = DateTime.Today;
+                        EndDate = DateTime.Today.AddMonths(1);
+                        break;
+                    case "year":
+                        StartDate = DateTime.Today;
+                        EndDate = DateTime.Today.AddYears(1);
+                        break;
+                }
+                ApplyFilters();
             }
+        }
 
             /// <summary>
             /// Добавление нового датчика
@@ -185,37 +410,90 @@ using System.Xml.Serialization;
                     ExpiryDate = DateTime.Today.AddYears(1) // По умолчанию срок - 1 год
                 });
 
-                // Если пользователь нажал "Сохранить"
-                if (dialog.ShowDialog() == true)
-                {
-                    // Добавляем датчик в коллекцию
-                    Sensors.Add(dialog.Sensor);
-                    // Сохраняем изменения
-                    SaveData();
-                }
-            }
-
-            /// <summary>
-            /// Редактирование выбранного датчика
-            /// </summary>
-            private void EditSensor(object obj)
+            // Если пользователь нажал "Сохранить"
+            if (dialog.ShowDialog() == true)
             {
-                // Создаем диалоговое окно с выбранным датчикок
-                var dialog = new SensorEditDialog(SelectedSensor);
-                if (dialog.ShowDialog() == true)
+                // Добавляем датчик в коллекцию
+                Sensors.Add(dialog.Sensor);
+                // Сохраняем изменения
+                SaveData();
+                // После добавления нового элемента обновляем фильтр
+                SelectedSensor = dialog.Sensor; // Выделяем новый элемент
+                ApplyFilters(); // Принудительно обновляем фильтр
+
+                // Если всё ещё не отображается, временно сбросим фильтры
+                if (!SensorsView.Contains(dialog.Sensor))
                 {
-                    // Сохраняем изменения (данные обновляются через привязку)
-                    SaveData();
+                    var currentSearch = SearchText;
+                    var currentStart = StartDate;
+                    var currentEnd = EndDate;
+
+                    SearchText = string.Empty;
+                    StartDate = DateTime.MinValue;
+                    EndDate = DateTime.MaxValue;
+
+                    ApplyFilters();
+
+                    // Возвращаем фильтры после отображения
+                    SearchText = currentSearch;
+                    StartDate = currentStart;
+                    EndDate = currentEnd;
+                    ApplyFilters();
                 }
             }
+        }
 
-            /// <summary>
-            /// Удаление выбранного датчика
-            /// </summary>
-            private void DeleteSensor(object obj)
+        /// <summary>
+        /// Редактирование выбранного датчика
+        /// Теперь не вызывает проблем с фильтрацией, так как работаем с исходной коллекцией
+        /// </summary>
+        private void EditSensor(object obj)
+        {
+            if (SelectedSensor == null) return;
+
+            // Создаем копию датчика для редактирования
+            var sensorCopy = new Sensor
+            {
+                Name = SelectedSensor.Name,
+                SerialNumber = SelectedSensor.SerialNumber,
+                TypeSensor = SelectedSensor.TypeSensor,
+                MeasurementLimits = SelectedSensor.MeasurementLimits,
+                PlacementDate = SelectedSensor.PlacementDate,
+                ClassForSure = SelectedSensor.ClassForSure,
+                ExpiryDate = SelectedSensor.ExpiryDate,
+                Location = SelectedSensor.Location,
+                PlaceOfUse = SelectedSensor.PlaceOfUse
+            };
+
+            var dialog = new SensorEditDialog(sensorCopy);
+            if (dialog.ShowDialog() == true)
+            {
+                // Обновляем свойства исходного датчика
+                SelectedSensor.Name = sensorCopy.Name;
+                SelectedSensor.SerialNumber = sensorCopy.SerialNumber;
+                SelectedSensor.TypeSensor = sensorCopy.TypeSensor;
+                SelectedSensor.MeasurementLimits = sensorCopy.MeasurementLimits;
+                SelectedSensor.PlacementDate = sensorCopy.PlacementDate;
+                SelectedSensor.Location = sensorCopy.Location;
+                SelectedSensor.PlaceOfUse = sensorCopy.PlaceOfUse;
+                SelectedSensor.ClassForSure = sensorCopy.ClassForSure;
+                SelectedSensor.ExpiryDate = sensorCopy.ExpiryDate;
+
+                SaveData();
+                // Обновляем отображение после редактирования
+                ApplyFilters();
+            }
+        }
+
+        /// <summary>
+        /// Удаление выбранного датчика
+        /// </summary>
+        private void DeleteSensor(object obj)
             {
                 if (obj is KeyEventArgs keyArgs && keyArgs.Key != Key.Delete)
                 return;
+
+                if (SelectedSensor == null) return;
 
                 // Запрос подтверждения
                 if (MessageBox.Show("Удалить выбранный датчик?", "Подтверждение",
@@ -225,23 +503,30 @@ using System.Xml.Serialization;
                     Sensors.Remove(SelectedSensor);
                     // Сохраняем изменения
                     SaveData();
+                    // После удаления обновляем фильтр
+                    ApplyFilters();
                 }
-            }
+                }
 
         /// <summary>
         /// Показать все датчики (сброс фильтров)
         /// </summary>
         private void ShowAllSensors(object obj)
-            {
-                SearchText = string.Empty; // Очистка текста поиска загрузит все данные
-            }
+        {
+            SearchText = string.Empty;
+            SetFullDateRange(); // Устанавливаем полный диапазон
+            ApplyFilters();
+        }
 
-            /// <summary>
-            /// Показать только просроченные датчики
-            /// </summary>
-            private void ShowApproachingSensors(object obj)
+        /// <summary>
+        /// Показать только просроченные датчики
+        /// </summary>
+        private void ShowApproachingSensors(object obj)
             {
-                SearchText = "status:approaching"; // Специальное значение для фильтрации
+                SearchText = "status:approaching";
+                StartDate = DateTime.Today;
+                EndDate = DateTime.Today.AddDays(30);
+                ApplyFilters();
             }
 
 
@@ -275,6 +560,9 @@ using System.Xml.Serialization;
                                     {
                                         Sensors.Add(sensor);
                                     }
+
+                                    // Автоматически устанавливаем полный диапазон дат после загрузки
+                                    SetFullDateRange();
                                 });
 
                                 ProgressValue = (double)i / data.Count * 100; // Обновление прогресса
@@ -291,77 +579,7 @@ using System.Xml.Serialization;
             }
         }
 
-        // Улучшенный метод фильтрации
-        private void ApplyFilters()
-        {
-            if (_sensorsView != null)
-            {
-                _sensorsView.Filter = item =>
-                {
-                    if (item is not Sensor sensor) return false;
 
-                    // Комбинированный фильтр:
-                    // 1. По дате (диапазон)
-                    bool dateMatch = sensor.ExpiryDate >= StartDate &&
-                                   sensor.ExpiryDate <= EndDate;
-
-                    // 2. По тексту (регистронезависимый + поиск по цифрам)
-                    bool textMatch = string.IsNullOrEmpty(SearchText) ||
-                        sensor.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                        Regex.IsMatch(sensor.SerialNumber, SearchText);
-
-                    return dateMatch && textMatch; // Совпадение по обоим условиям
-                };
-            }
-        }
-
-
-        /// <summary>
-        /// Фильтрация датчиков по тексту поиска
-        /// </summary>
-        private void FilterSensors()
-            {
-                // Если строка поиска пустая - загружаем все данные
-                if (string.IsNullOrWhiteSpace(SearchText))
-                {
-                    LoadDataAsync();
-                    return;
-                }
-
-                // Фильтр для истекающих датчиков
-                if (SearchText == "status:approaching")
-                {
-                    var filtered = Sensors.Where(t =>
-                        t.ExpiryDate <= DateTime.Today.AddDays(30)).ToList();
-                    Sensors.Clear();
-                    foreach (var sensor in filtered)
-                        Sensors.Add(sensor);
-                }
-                // Обычный поиск по всем полям
-                else
-                {
-                    var searchTerm = SearchText.ToLower();
-                    var filtered = Sensors.Where(sensor =>
-                        sensor.Name.ToLower().Contains(searchTerm) ||
-                        sensor.SerialNumber.ToLower().Contains(searchTerm) ||
-                        sensor.TypeSensor.ToLower().Contains(searchTerm) ||
-                        sensor.MeasurementLimits.ToLower().Contains(searchTerm) ||
-                        sensor.ClassForSure.ToLower().Contains(searchTerm) ||
-                        sensor.Location.ToLower().Contains(searchTerm) ||
-                        sensor.PlaceOfUse.ToLower().Contains(searchTerm) ||
-                        sensor.ExpiryStatus.ToLower().Contains(searchTerm) ||
-                        // Поиск по цифрам в серийном номере (например, "436" найдёт "SN436-001")
-                        Regex.IsMatch(sensor.SerialNumber, searchTerm) ||
-                        // Поиск по дате в формате "dd.MM.yyyy" или "yyyy-MM-dd"
-                        sensor.PlacementDate.ToString("dd.MM.yyyy").Contains(searchTerm) ||
-                        sensor.ExpiryDate.ToString("dd.MM.yyyy").Contains(searchTerm)).ToList();
-
-                    // Обновляем коллекцию с учетом фильтра
-                    Sensors.Clear();
-                    foreach (var sensor in filtered)
-                        Sensors.Add(sensor);
-                }
-            }
 
             /// <summary>
             /// Экспорт данных в CSV файл
@@ -378,15 +596,16 @@ using System.Xml.Serialization;
                 if (saveFileDialog.ShowDialog() == true)
                 {
                     try
+                    {// Получаем отфильтрованные данные
+                    var filteredSensors = SensorsView.Cast<Sensor>().ToList();
+                    // Запись данных в файл
+                    using (var writer = new StreamWriter(saveFileDialog.FileName, false, Encoding.UTF8))
                     {
-                        // Запись данных в файл
-                        using (var writer = new StreamWriter(saveFileDialog.FileName))
-                        {
                             // Заголовки столбцов
                             writer.WriteLine("Название;Заводской номер;Дата размещения;Срок хранения;Стенд;Место хранения;Количество;Назначение;Статус");
 
                             // Данные по каждому датчику
-                            foreach (var sensor in Sensors)
+                            foreach (var sensor in filteredSensors)
                             {
                                 writer.WriteLine(
                                     $"\"{sensor.Name}\";\"{sensor.TypeSensor}\";\"{sensor.SerialNumber}\";" +
@@ -423,7 +642,10 @@ using System.Xml.Serialization;
                 {
                     try
                     {
-                        ExcelExportService.ExportSensorsToExcel(Sensors, dialog.FileName);
+                        // Получаем текущие отфильтрованные данные
+                        var filteredSensors = SensorsView.Cast<Sensor>().ToList();
+
+                        ExcelExportService.ExportSensorsToExcel(filteredSensors, dialog.FileName);
                     
                         if (MessageBox.Show("Экспорт завершен успешно! Открыть файл?", 
                             "Готово", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
@@ -515,16 +737,16 @@ using System.Xml.Serialization;
                 }
             }
 
-            /// <summary>
-            /// Событие изменения свойства (для INotifyPropertyChanged)
-            /// </summary>
-            public event PropertyChangedEventHandler PropertyChanged;
+        /// <summary>
+        /// Событие изменения свойства (для INotifyPropertyChanged)
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
 
-            /// <summary>
-            /// Метод вызова события PropertyChanged
-            /// </summary>
-            /// <param name="propertyName">Имя изменившегося свойства</param>
-            protected virtual void OnPropertyChanged(string propertyName)
+        /// <summary>
+        /// Метод вызова события PropertyChanged
+        /// </summary>
+        /// <param name="propertyName">Имя изменившегося свойства</param>
+        protected virtual void OnPropertyChanged(string propertyName)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }

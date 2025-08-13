@@ -15,70 +15,68 @@ namespace AOKMPO_BD_Sensors
     /// </summary>
     public class Sensor : INotifyPropertyChanged
     {
+        // Приватные поля для хранения значений свойств
+        private string _name;
+        private string _typeSensor;
+        private string _serialNumber;
+        private DateTime _placementDate;
+        private DateTime _expiryDate;
+        private string _location;
+        private string _placeOfUse;
+        private string _measurementLimits;
+        private string _classForSure;
 
+        /// <summary>
+        /// Название датчика
+        /// </summary>
+        public string Name
+        {
+            get => _name;
+            set { _name = value; OnPropertyChanged(nameof(Name)); }
+        }
 
-            // Приватные поля для хранения значений свойств
-            private string _name;
-            private string _typeSensor;
-            private string _serialNumber;
-            private DateTime _placementDate;
-            private DateTime _expiryDate;
-            private string _location;
-            private string _placeOfUse;
-            private string _measurementLimits;
-            private string _classForSure;
+        /// <summary>
+        /// Заводской номер датчика
+        /// </summary>
+        public string SerialNumber
+        {
+            get => _serialNumber;
+            set { _serialNumber = value; OnPropertyChanged(nameof(SerialNumber)); }
+        }
 
-            /// <summary>
-            /// Название датчика
-            /// </summary>
-            public string Name
-            {
-                get => _name;
-                set { _name = value; OnPropertyChanged(nameof(Name)); }
-            }
-
-            /// <summary>
-            /// Заводской номер датчика
-            /// </summary>
-            public string SerialNumber
-            {
-                get => _serialNumber;
-                set { _serialNumber = value; OnPropertyChanged(nameof(SerialNumber)); }
-            }
-
-            /// <summary>
-            /// Тип датчика
-            /// </summary>
-            public string TypeSensor
-            {
-                get => _typeSensor;
-                set { _typeSensor = value; OnPropertyChanged(nameof(TypeSensor)); }
-            }
+        /// <summary>
+        /// Тип датчика
+        /// </summary>
+        public string TypeSensor
+        {
+            get => _typeSensor;
+            set { _typeSensor = value; OnPropertyChanged(nameof(TypeSensor)); }
+        }
 
         /// <summary>
         /// Дата обслуживание датчика
         /// </summary>
         public DateTime PlacementDate
-            {
-                get => _placementDate;
-                set { _placementDate = value; OnPropertyChanged(nameof(PlacementDate)); }
-            }
+        {
+            get => _placementDate;
+            set { _placementDate = value; OnPropertyChanged(nameof(PlacementDate)); }
+        }
 
-            /// <summary>
-            /// Срок до проверки датчика
-            /// При изменении также обновляет цвет и статус
-            /// </summary>
-            public DateTime ExpiryDate
+        /// <summary>
+        /// Срок до проверки датчика
+        /// При изменении также обновляет цвет и статус
+        /// </summary>
+        public DateTime ExpiryDate
+        {
+            get => _expiryDate;
+            set
             {
-                get => _expiryDate;
-                set
-                {
-                    _expiryDate = value;
-                    OnPropertyChanged(nameof(ExpiryDate));
-                    OnPropertyChanged(nameof(ExpiryColor));
-                    OnPropertyChanged(nameof(ExpiryStatus));
-                }
+                _expiryDate = value;
+                OnPropertyChanged(nameof(ExpiryDate));
+                OnPropertyChanged(nameof(ExpiryColor));
+                OnPropertyChanged(nameof(ExpiryStatus));
             }
+        }
 
         /// <summary>
         /// Класс точности
@@ -93,81 +91,78 @@ namespace AOKMPO_BD_Sensors
         /// Место расположения датчика
         /// </summary>
         public string Location
-            {
-                get => _location;
-                set { _location = value; OnPropertyChanged(nameof(Location)); }
-            }
+        {
+            get => _location;
+            set { _location = value; OnPropertyChanged(nameof(Location)); }
+        }
 
-            /// <summary>
-            /// Пределы измерения
-            /// </summary>
-            public string MeasurementLimits
-            {
-                get => _measurementLimits;
-                set { _measurementLimits = value; OnPropertyChanged(nameof(MeasurementLimits)); }
-            }
+        /// <summary>
+        /// Пределы измерения
+        /// </summary>
+        public string MeasurementLimits
+        {
+            get => _measurementLimits;
+            set { _measurementLimits = value; OnPropertyChanged(nameof(MeasurementLimits)); }
+        }
 
         /// <summary>
         /// Место эксплуатация
         /// </summary>
         public string PlaceOfUse
+        {
+            get => _placeOfUse;
+            set { _placeOfUse = value; OnPropertyChanged(nameof(PlaceOfUse)); }
+        }
+
+        /// <summary>
+        /// Цвет для отображения в зависимости от срока до проверки
+        /// </summary>
+        public Brush ExpiryColor
+        {
+            get
             {
-                get => _placeOfUse;
-                set { _placeOfUse = value; OnPropertyChanged(nameof(PlaceOfUse)); }
+                TimeSpan remaining = ExpiryDate - DateTime.Today;
+
+                if (remaining.TotalDays <= 14)
+                    return Brushes.OrangeRed; // Менее 2 недель
+                else if (remaining.TotalDays <= 30)
+                    return Brushes.LightYellow; // Менее года - желтый
+                else
+                    return Brushes.LightGreen; // Более года - зеленый
             }
+        }
 
-
-            /// <summary>
-            /// Цвет для отображения в зависимости от срока до проверки
-            /// </summary>
-            public Brush ExpiryColor
+        /// <summary>
+        /// Текстовый статус срока до проверки
+        /// </summary>
+        public string ExpiryStatus
+        {
+            get
             {
-                get
-                {
+                TimeSpan remaining = ExpiryDate - DateTime.Today;
 
-                    TimeSpan remaining = ExpiryDate - DateTime.Today;
-
-                    if (remaining.TotalDays <= 14)
-                        return Brushes.OrangeRed; // Менее 2 недель
-                    else if (remaining.TotalDays <= 30)
-                        return Brushes.LightYellow; // Менее года - желтый
-                    else
-                        return Brushes.LightGreen; // Более года - зеленый
-                }
+                if (remaining.TotalDays <= 0)
+                    return "Просрочено";
+                else if (remaining.TotalDays <= 30)
+                    return $"Осталось {remaining.Days} дней";
+                else if (remaining.TotalDays <= 365)
+                    return $"Осталось {remaining.Days / 30} месяцев";
+                else
+                    return $"Осталось {remaining.Days / 365} лет";
             }
-
-            /// <summary>
-            /// Текстовый статус срока до проверки
-            /// </summary>
-            public string ExpiryStatus
-            {
-                get
-                {
-                    TimeSpan remaining = ExpiryDate - DateTime.Today;
-
-                    if (remaining.TotalDays <= 0)
-                        return "Просрочено";
-                    else if (remaining.TotalDays <= 30)
-                        return $"Осталось {remaining.Days} дней";
-                    else if (remaining.TotalDays <= 365)
-                        return $"Осталось {remaining.Days / 30} месяцев";
-                    else
-                        return $"Осталось {remaining.Days / 365} лет";
-                }
-            }
+        }
 
         /// <summary>
         /// Событие, возникающее при изменении свойств
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-            /// <summary>
-            /// Метод для вызова события PropertyChanged
-            /// </summary>
-            /// <param name="propertyName">Имя изменившегося свойства</param>
-            protected virtual void OnPropertyChanged(string propertyName)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
+        /// <summary>
+        /// Метод для вызова события PropertyChanged
+        /// </summary>
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
