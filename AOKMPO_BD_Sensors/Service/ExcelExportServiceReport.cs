@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace AOKMPO_BD_Sensors.Service
 {
-    public static class ExcelExportService
+    public static class ExcelExportServiceReport
     {
-        public static void ExportSensorsToExcel(IEnumerable<Sensor> sensors, string filePath)
+        public static void ExportReportToExcel(IEnumerable<Sensor> sensors, string filePath)
         {
             using (var workbook = new XLWorkbook())
             {
@@ -22,20 +22,19 @@ namespace AOKMPO_BD_Sensors.Service
                 headerStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerStyle.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                var mainHeader1 = worksheet.Range("A1:S1");
+                var mainHeader1 = worksheet.Range("A1:T1");
                 mainHeader1.Merge().Value = "ПЕРЕЧЕНЬ";
                 mainHeader1.Style.Font.Bold = true;
                 mainHeader1.Style.Font.FontSize = 14;
                 mainHeader1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                var mainHeader2 = worksheet.Range("A2:S2");
+                var mainHeader2 = worksheet.Range("A2:T2");
                 mainHeader2.Merge().Value = "средств измерений для включения в график поверки (калибровки) в ОГМетр";
                 mainHeader2.Style.Font.Bold = true;
                 mainHeader2.Style.Font.FontSize = 14;
                 mainHeader2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-
-                var mainHeader3 = worksheet.Range("A3:S3");
+                var mainHeader3 = worksheet.Range("A3:T3");
                 mainHeader3.Merge().Value = $"на {DateTime.Now.Year + 1} г.";
                 mainHeader3.Style.Font.Bold = true;
                 mainHeader3.Style.Font.FontSize = 14;
@@ -50,8 +49,6 @@ namespace AOKMPO_BD_Sensors.Service
                     "Индивидуальный\nномер",
                     "Пределы\nизмерения",
                     "Кл.\nточн",
-                    "Прошлая\nпроверка",
-                    "Дата\nпроверки",
                     "Хранится",
                     "Эксплуатации"
                 };
@@ -76,8 +73,6 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Range("F6:F6").Style.Border.SetOutsideBorder(XLBorderStyleValues.Medium);
                 worksheet.Range("G6:G6").Style.Border.SetOutsideBorder(XLBorderStyleValues.Medium);
                 worksheet.Range("H6:H6").Style.Border.SetOutsideBorder(XLBorderStyleValues.Medium);
-                worksheet.Range("I6:I6").Style.Border.SetOutsideBorder(XLBorderStyleValues.Medium);
-                worksheet.Range("J6:J6").Style.Border.SetOutsideBorder(XLBorderStyleValues.Medium);
 
                 // Объединение ячеек заголовков
                 worksheet.Range("A5:A6").Merge();
@@ -88,11 +83,9 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Range("F5:F6").Merge();
                 worksheet.Range("G5:G6").Merge();
                 worksheet.Range("H5:H6").Merge();
-                worksheet.Range("I5:I6").Merge();
-                worksheet.Range("J5:J6").Merge();
 
                 // Нумерация столбцов
-                for (int i = 1; i <= 10; i++) // A7-J7
+                for (int i = 1; i <= 8; i++)
                 {
                     worksheet.Cell(7, i).Value = i;
                     worksheet.Cell(7, i).Style.Font.Bold = true;
@@ -100,8 +93,36 @@ namespace AOKMPO_BD_Sensors.Service
                     worksheet.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 }
 
+                // Заголовок для таблицы месяцев
+                var monthHeader = worksheet.Range(5, 9, 5, 20);
+                monthHeader.Merge().Value = "Месяц поверки";
+                monthHeader.Style.Font.Bold = true;
+                monthHeader.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                monthHeader.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                monthHeader.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
+                // Сокращения месяцев
+                string[] monthAbbreviations = { "я", "ф", "м", "а", "м", "и", "и", "а", "с", "о", "н", "д" };
+                for (int i = 0; i < monthAbbreviations.Length; i++)
+                {
+                    var cell = worksheet.Cell(6, 9 + i);
+                    cell.Value = monthAbbreviations[i];
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                // Номера месяцев
+                for (int i = 0; i < 12; i++)
+                {
+                    var cell = worksheet.Cell(7, 9 + i);
+                    cell.Value = i + 1;
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+
                 // Данные
-                int row = 8; // Начинаем с 8 строки, так как месяцы занимают 6-7 строки
+                int row = 8;
                 int counter = 1;
                 foreach (var sensor in sensors)
                 {
@@ -112,41 +133,74 @@ namespace AOKMPO_BD_Sensors.Service
                     worksheet.Cell(row, 4).Value = sensor.SerialNumber;
                     worksheet.Cell(row, 5).Value = sensor.MeasurementLimits;
                     worksheet.Cell(row, 6).Value = sensor.ClassForSure;
-                    worksheet.Cell(row, 7).Value = sensor.PlacementDate;
-                    worksheet.Cell(row, 8).Value = sensor.ExpiryDate;
-                    worksheet.Cell(row, 9).Value = sensor.Location;
-                    worksheet.Cell(row, 10).Value = sensor.PlaceOfUse;
+                    worksheet.Cell(row, 7).Value = sensor.Location;
+                    worksheet.Cell(row, 8).Value = sensor.PlaceOfUse;
 
                     // Форматирование основных данных
-                    for (int col = 1; col <= 10; col++)
+                    for (int col = 1; col <= 8; col++)
                     {
                         worksheet.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         worksheet.Cell(row, col).Style.Font.FontSize = 9;
                         worksheet.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     }
 
+                    // Рассчитываем месяцы поверки
+                    DateTime startDate = sensor.PlacementDate; // прошлая поверка
+                    DateTime endDate = sensor.ExpiryDate;      // следующая поверка
+
+                    // Если дата следующей поверки раньше прошлой (например, при переходе через год)
+                    if (endDate < startDate)
+                    {
+                        endDate = endDate.AddYears(1);
+                    }
+
+                    // Вычисляем разницу в месяцах
+                    int monthsDifference = ((endDate.Year - startDate.Year) * 12) + endDate.Month - startDate.Month;
+
+                    // Если интервал между поверками 6 месяцев или меньше
+                    if (monthsDifference <= 6)
+                    {
+                        // Отмечаем обе даты
+                        MarkVerificationMonth(worksheet, row, startDate.Month);
+                        MarkVerificationMonth(worksheet, row, endDate.Month);
+                    }
+                    else
+                    {
+                        // Если интервал больше 6 месяцев, отмечаем только следующую поверку
+                        MarkVerificationMonth(worksheet, row, endDate.Month);
+                    }
+
+                    // Рамка для всех ячеек строки месяцев
+                    worksheet.Range(row, 9, row, 20).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    worksheet.Range(row, 9, row, 20).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
                     row++;
                 }
 
                 // Настройка ширины столбцов
-                worksheet.Column(1).Width = 5;   // № п/п
-                worksheet.Column(2).Width = 15;  // Наименование СИ
-                worksheet.Column(3).Width = 15;  // Тип СИ
-                worksheet.Column(4).Width = 17;  // Номер
-                worksheet.Column(5).Width = 10;  // Пределы измерений
-                worksheet.Column(6).Width = 8;   // Класс точности
-                worksheet.Column(7).Width = 15;  // Последняя поверка
-                worksheet.Column(8).Width = 15;  // Следующая поверка
-                worksheet.Column(9).Width = 12;  // Место установки
-                worksheet.Column(10).Width = 15; // Место эксплуатации
+                worksheet.Column(1).Width = 5;
+                worksheet.Column(2).Width = 15;
+                worksheet.Column(3).Width = 15;
+                worksheet.Column(4).Width = 17;
+                worksheet.Column(5).Width = 10;
+                worksheet.Column(6).Width = 8;
+                worksheet.Column(7).Width = 15;
+                worksheet.Column(8).Width = 15;
 
-                // Выравнивание текста в ячейках
+                // Ширина столбцов для месяцев
+                for (int col = 9; col <= 20; col++)
+                {
+                    worksheet.Column(col).Width = 4;
+                }
+
+                // Выравнивание текста
                 worksheet.Rows(8, row - 1).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 worksheet.Rows(8, row - 1).Style.Alignment.WrapText = true;
 
+                // Границы для всей таблицы
+                worksheet.Range(5, 1, row - 1, 20).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+
                 // Границы для столбцов таблицы
-                worksheet.Range(5, 1, row - 1, 10).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
-                worksheet.Range(5, 1, row - 1, 9).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
                 worksheet.Range(5, 1, row - 1, 8).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
                 worksheet.Range(5, 1, row - 1, 7).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
                 worksheet.Range(5, 1, row - 1, 6).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
@@ -155,16 +209,13 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Range(5, 1, row - 1, 3).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
                 worksheet.Range(5, 1, row - 1, 2).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
 
-                // Границы для всей таблицы
-                worksheet.Range(5, 1, row - 1, 10).Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
-
-                // Добавляем подпись под таблицей (адаптировано под новую ширину)
+                // Добавляем подпись под таблицей
                 int footerRow = row + 1;
                 worksheet.Cell(footerRow + 2, 2).Value = "#   -Устройство САУ и АИиС НК-38СТ   инвентарный № 05Y-00700";
                 worksheet.Cell(footerRow + 4, 2).Value = "##   -Стенд автономных испытания опыт. горелок камеры сгорания изд. НК-38СТ, НК-16СТ  инвентарный №СТ-00032";
                 worksheet.Cell(footerRow + 6, 2).Value = "###   -Стенд№2 инвентарный №01Y-00404";
 
-                // Подписи (адаптировано под новую ширину)
+                // Подписи
                 worksheet.Cell(footerRow + 8, 2).Value = "Начальник уч. 420";
                 worksheet.Cell(footerRow + 8, 4).Value = "___________________________";
                 worksheet.Cell(footerRow + 8, 7).Value = "___________________________";
@@ -181,7 +232,7 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Cell(footerRow + 14, 4).Value = "___________________________";
                 worksheet.Cell(footerRow + 14, 7).Value = "___________________________";
 
-                // Объединяем ячейки для подписи (адаптировано под новую ширину)
+                // Объединение ячеек для подписи
                 worksheet.Range(footerRow + 2, 2, footerRow + 2, 22).Merge();
                 worksheet.Range(footerRow + 4, 2, footerRow + 4, 22).Merge();
                 worksheet.Range(footerRow + 6, 2, footerRow + 6, 22).Merge();
@@ -205,6 +256,17 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Range(footerRow + 2, 2, footerRow + 14, 9).Style.Font.Bold = true;
 
                 workbook.SaveAs(filePath);
+            }
+        }
+
+        private static void MarkVerificationMonth(IXLWorksheet worksheet, int row, int month)
+        {
+            if (month >= 1 && month <= 12)
+            {
+                var cell = worksheet.Cell(row, 9 + (month - 1));
+                cell.Style.Font.Bold = true;
+                cell.Style.Border.DiagonalDown = true;
+                cell.Style.Border.DiagonalBorder = XLBorderStyleValues.Medium;
             }
         }
     }
