@@ -233,9 +233,9 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Cell(footerRow + 14, 7).Value = "___________________________";
 
                 // Объединение ячеек для подписи
-                worksheet.Range(footerRow + 2, 2, footerRow + 2, 22).Merge();
-                worksheet.Range(footerRow + 4, 2, footerRow + 4, 22).Merge();
-                worksheet.Range(footerRow + 6, 2, footerRow + 6, 22).Merge();
+                worksheet.Range(footerRow + 2, 2, footerRow + 2, 20).Merge();
+                worksheet.Range(footerRow + 4, 2, footerRow + 4, 20).Merge();
+                worksheet.Range(footerRow + 6, 2, footerRow + 6, 20).Merge();
 
                 worksheet.Range(footerRow + 8, 2, footerRow + 8, 3).Merge();
                 worksheet.Range(footerRow + 10, 2, footerRow + 10, 3).Merge();

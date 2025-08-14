@@ -22,20 +22,20 @@ namespace AOKMPO_BD_Sensors.Service
                 headerStyle.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerStyle.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
-                var mainHeader1 = worksheet.Range("A1:S1");
+                var mainHeader1 = worksheet.Range("A1:J1");
                 mainHeader1.Merge().Value = "ПЕРЕЧЕНЬ";
                 mainHeader1.Style.Font.Bold = true;
                 mainHeader1.Style.Font.FontSize = 14;
                 mainHeader1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                var mainHeader2 = worksheet.Range("A2:S2");
+                var mainHeader2 = worksheet.Range("A2:J2");
                 mainHeader2.Merge().Value = "средств измерений для включения в график поверки (калибровки) в ОГМетр";
                 mainHeader2.Style.Font.Bold = true;
                 mainHeader2.Style.Font.FontSize = 14;
                 mainHeader2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
 
-                var mainHeader3 = worksheet.Range("A3:S3");
+                var mainHeader3 = worksheet.Range("A3:J3");
                 mainHeader3.Merge().Value = $"на {DateTime.Now.Year + 1} г.";
                 mainHeader3.Style.Font.Bold = true;
                 mainHeader3.Style.Font.FontSize = 14;
@@ -182,9 +182,9 @@ namespace AOKMPO_BD_Sensors.Service
                 worksheet.Cell(footerRow + 14, 7).Value = "___________________________";
 
                 // Объединяем ячейки для подписи (адаптировано под новую ширину)
-                worksheet.Range(footerRow + 2, 2, footerRow + 2, 22).Merge();
-                worksheet.Range(footerRow + 4, 2, footerRow + 4, 22).Merge();
-                worksheet.Range(footerRow + 6, 2, footerRow + 6, 22).Merge();
+                worksheet.Range(footerRow + 2, 2, footerRow + 2, 10).Merge();
+                worksheet.Range(footerRow + 4, 2, footerRow + 4, 10).Merge();
+                worksheet.Range(footerRow + 6, 2, footerRow + 6, 10).Merge();
 
                 worksheet.Range(footerRow + 8, 2, footerRow + 8, 3).Merge();
                 worksheet.Range(footerRow + 10, 2, footerRow + 10, 3).Merge();
