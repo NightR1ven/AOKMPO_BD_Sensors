@@ -154,6 +154,7 @@ using System.Xml.Serialization;
                 DeleteCommand = new RelayCommand(DeleteSensor, CanEditOrDelete);
                 ShowAllCommand = new RelayCommand(ShowAllSensors);
                 ShowExpiringCommand = new RelayCommand((ShowApproachingSensors));
+                ShowExpiredCommand = new RelayCommand(ShowExpiredSensors);
                 ExportCommand = new RelayCommand(ExportSensors);
                 ExportToExcelCommand = new RelayCommand(_ => ExportToExcel());
                 ExportToExcelReportCommand = new RelayCommand(_ => ExportReportToExcel());
@@ -186,12 +187,16 @@ using System.Xml.Serialization;
         {
             if (item is not Sensor sensor) return false;
 
-            // Применяем фильтр по дате
+            // Фильтр по дате
             bool dateMatch = FilterByDate(sensor);
 
             // Если нет текста для поиска - возвращаем только результат фильтрации по дате
             if (string.IsNullOrEmpty(SearchText))
                 return dateMatch;
+
+            // Специальный фильтр для просроченных датчиков
+            if (SearchText == "status:expired")
+                return dateMatch && sensor.ExpiryDate < DateTime.Today;
 
             // Специальный фильтр для истекающих датчиков
             if (SearchText == "status:approaching")
@@ -529,6 +534,26 @@ public bool UseDateFilter
                 EndDate = DateTime.Today.AddDays(30);
                 ApplyFilters();
             }
+
+        /// <summary>
+        /// Показать просроченные датчики
+        /// </summary>
+        private void ShowExpiredSensors(object obj)
+        {
+            // Очищаем текстовый поиск
+            SearchText = string.Empty;
+
+            // Устанавливаем диапазон дат "все что раньше сегодня"
+            StartDate = DateTime.MinValue;
+            EndDate = DateTime.Today;
+
+            // Применяем фильтр по статусу "Просрочено"
+            SearchText = "status:expired";
+
+            OnPropertyChanged(nameof(StartDate));
+            OnPropertyChanged(nameof(EndDate));
+            ApplyFilters();
+        }
 
 
         // Метод асинхронной загрузки с прогрессом

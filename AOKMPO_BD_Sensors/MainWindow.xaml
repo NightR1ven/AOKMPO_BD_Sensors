@@ -47,6 +47,8 @@
             <!-- Кнопки фильтрации -->
             <Button Content="Истекающие" Width="100" Margin="0,10,10,10" Command="{Binding ShowExpiringCommand}"/>
 
+            <Button Content="Просроченные" Width="100" Margin="0,10,10,10" Command="{Binding ShowExpiredCommand}"/>
+            
             <!-- Фильтр по дате -->
             <!-- Выбор предустановленного периода -->
             <ComboBox ItemsSource="{Binding DatePeriods}" 
