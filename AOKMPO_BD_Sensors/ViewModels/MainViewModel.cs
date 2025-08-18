@@ -368,15 +368,61 @@ public bool UseDateFilter
         }
         private async Task LoadDataAndCheckExpiredAsync()
             {
-                await LoadDataAsync();  // Сначала загружаем данные
-                CheckExpiredSensors();  // Проверяем просроченные датчики
-            }
+            await LoadDataAsync();
+            CheckExpiredSensors(); // Показываем уведомление о просроченных
+            CheckApproachingSensors(); // Показываем уведомление о подходящие к сроку
+        }
 
-            /// <summary>
-            /// Проверка, можно ли редактировать или удалять датчик
-            /// (должен быть выбран хотя бы один датчик)
-            /// </summary>
-            private bool CanEditOrDelete(object obj) => SelectedSensor != null;
+        private void CheckExpiredSensors()
+        {
+            var expired = Sensors.Where(s => s.ExpiryDate < DateTime.Today).ToList();
+
+            if (expired.Any())
+            {
+                var message = new StringBuilder();
+                message.AppendLine("Обнаружены просроченные датчики:");
+                foreach (var sensor in expired.Take(5)) // Показываем первые 5
+                {
+                    message.AppendLine($"- {sensor.Name} (№{sensor.SerialNumber}) просрочен {sensor.ExpiryDate:dd.MM.yyyy}");
+                }
+                if (expired.Count > 5) message.AppendLine($"... и еще {expired.Count - 5}");
+
+                MessageBox.Show(message.ToString(), "Внимание!",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Проверка истекающих датчиков
+        /// Показывает предупреждение, если такие есть
+        /// </summary>
+
+        private void CheckApproachingSensors()
+        {
+            var approaching = Sensors.Where(t =>
+        t.ExpiryDate >= DateTime.Today &&
+        t.ExpiryDate <= DateTime.Today.AddDays(30)).ToList();
+
+            if (approaching.Any())
+            {
+                var message = new StringBuilder();
+                message.AppendLine("Обнаружены датчики на проверку в следующем месяце:");
+                foreach (var sensor in approaching.Take(5)) // Показываем первые 5
+                {
+                    message.AppendLine($"- {sensor.Name} (№{sensor.SerialNumber}) проверка {sensor.ExpiryDate:dd.MM.yyyy}");
+                }
+                if (approaching.Count > 5) message.AppendLine($"... и еще {approaching.Count - 5}");
+
+                MessageBox.Show(message.ToString(), "Внимание!",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Проверка, можно ли редактировать или удалять датчик
+        /// (должен быть выбран хотя бы один датчик)
+        /// </summary>
+        private bool CanEditOrDelete(object obj) => SelectedSensor != null;
 
             /// <summary>
             /// Фильтр по дате
@@ -773,28 +819,6 @@ public bool UseDateFilter
                 {
                     MessageBox.Show($"Ошибка сохранения данных: {ex.Message}", "Ошибка",
                         MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-
-            /// <summary>
-            /// Проверка просроченных и истекающих датчиков
-            /// Показывает предупреждение, если такие есть
-            /// </summary>
-            private void CheckExpiredSensors()
-            {
-                var approaching = Sensors.Where(t =>
-            t.ExpiryDate >= DateTime.Today &&
-            t.ExpiryDate <= DateTime.Today.AddDays(30)).ToList();
-
-                if (approaching.Any())
-                {
-                    var message = new System.Text.StringBuilder();
-                    message.AppendLine("Скоро истекает срок у следующих датчиков:");
-                    foreach (var sensor in approaching)
-                        message.AppendLine($"- {sensor.Name} (№{sensor.SerialNumber}) - до {sensor.ExpiryDate:dd.MM.yyyy}");
-
-                    MessageBox.Show(message.ToString(), "Внимание! Проверьте сроки",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
 
