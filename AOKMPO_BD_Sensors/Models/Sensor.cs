@@ -23,6 +23,7 @@ namespace AOKMPO_BD_Sensors
         private DateTime _expiryDate;
         private string _location;
         private string _placeOfUse;
+        private string _placeOfDoc;
         private string _measurementLimits;
         private string _classForSure;
 
@@ -112,6 +113,15 @@ namespace AOKMPO_BD_Sensors
         {
             get => _placeOfUse;
             set { _placeOfUse = value; OnPropertyChanged(nameof(PlaceOfUse)); }
+        }
+
+        /// <summary>
+        /// Место хранение документов
+        /// </summary>
+        public string PlaceOfDoc
+        {
+            get => _placeOfDoc;
+            set { _placeOfDoc = value; OnPropertyChanged(nameof(PlaceOfDoc)); }
         }
 
         /// <summary>

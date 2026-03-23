@@ -109,9 +109,10 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+                    <GridViewColumn Header="Документ" DisplayMemberBinding="{Binding PlaceOfDoc}" Width="90"/>
                     <GridViewColumn Header="Хранится" DisplayMemberBinding="{Binding Location}" Width="80"/>
                     <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="90" />
-                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="130"/>
+                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="80"/>
                 </GridView>
             </ListView.View>
             <!-- Стиль для элементов списка - цвет фона по сроку -->
