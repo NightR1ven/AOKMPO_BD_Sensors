@@ -12,28 +12,27 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:EqualsConverter x:Key="EqualsConverter"/>
 
+        <!-- Стили для элементов -->
         <Style TargetType="Button">
             <Setter Property="Margin" Value="0,0,10,10"/>
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-
         <Style TargetType="TextBox">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Height" Value="28"/>
         </Style>
-
         <Style TargetType="ComboBox">
             <Setter Property="Height" Value="28"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
-
         <Style TargetType="DatePicker">
             <Setter Property="Height" Value="28"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
+        <!-- Шаблон для индикатора загрузки -->
         <ControlTemplate x:Key="LoadingOverlay" TargetType="ContentControl">
             <Border Background="#CCFFFFFF" BorderBrush="LightGray" BorderThickness="1" CornerRadius="5">
                 <StackPanel Margin="15" Orientation="Vertical" HorizontalAlignment="Center">
@@ -52,7 +51,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Поиск и фильтры -->
+        <!-- Панель поиска и фильтрации -->
         <Grid Grid.Row="0" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
@@ -60,9 +59,11 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Поле поиска -->
             <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="1" CornerRadius="3" Height="28" Background="White">
                 <DockPanel>
-                    <Image Width="16" Height="16" Margin="5,0" DockPanel.Dock="Left"/>
+                    <!-- Если есть иконка, раскомментируйте и укажите правильный путь -->
+                    <!-- <Image Source="/Resources/search.png" Width="16" Height="16" Margin="5,0" DockPanel.Dock="Left"/> -->
                     <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                              BorderThickness="0"
                              Width="250"
@@ -75,6 +76,7 @@
                 </DockPanel>
             </Border>
 
+            <!-- Выбор периода -->
             <StackPanel Grid.Column="2" Orientation="Horizontal">
                 <ComboBox ItemsSource="{Binding DatePeriods}" 
                           SelectedValuePath="Key"
@@ -97,7 +99,7 @@
             </StackPanel>
         </Grid>
 
-        <!-- Кнопки -->
+        <!-- Панель кнопок -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <Button Content="Добавить" Width="80" Command="{Binding AddCommand}" ToolTip="Добавить новый датчик (Ctrl+N)"/>
             <Button Content="Редактировать" Width="100" Command="{Binding EditCommand}" ToolTip="Редактировать выбранный датчик (Ctrl+E)"/>
@@ -173,5 +175,13 @@
                 <TextBlock Text="{Binding LastUpdate, FallbackValue='Обновлено: --:--', StringFormat='Обновлено: {0}'}"/>
             </StatusBarItem>
         </StatusBar>
+
+        <!-- Индикатор загрузки (плавающий поверх) -->
+        <ContentControl Grid.RowSpan="4"
+                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Template="{StaticResource LoadingOverlay}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        IsHitTestVisible="False"/>
     </Grid>
 </Window>

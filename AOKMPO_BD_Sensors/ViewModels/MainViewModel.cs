@@ -1,5 +1,4 @@
 ﻿using AOKMPO_BD_Sensors.Service;
-using AOKMPO_BD_Sensors.Service;
 using AOKMPO_BD_Sensors.Views;
 using Microsoft.Win32;
 using System;
