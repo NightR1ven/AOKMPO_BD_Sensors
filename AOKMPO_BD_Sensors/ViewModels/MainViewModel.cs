@@ -1,5 +1,6 @@
 ﻿using AOKMPO_BD_Sensors.Service;
 using AOKMPO_BD_Sensors.Service;
+using AOKMPO_BD_Sensors.Views;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -408,7 +409,8 @@ public bool UseDateFilter
                 var dialog = new SensorEditDialog(new Sensor
                 {
                     PlacementDate = DateTime.Today,
-                    ExpiryDate = DateTime.Today.AddYears(1) // По умолчанию срок - 1 год
+                    ExpiryDate = DateTime.Today.AddYears(1), // По умолчанию срок - 1 год
+                    PlaceOfDoc = "не известно"
                 });
 
             // Если пользователь нажал "Сохранить"
@@ -463,7 +465,8 @@ public bool UseDateFilter
                 ClassForSure = SelectedSensor.ClassForSure,
                 ExpiryDate = SelectedSensor.ExpiryDate,
                 Location = SelectedSensor.Location,
-                PlaceOfUse = SelectedSensor.PlaceOfUse
+                PlaceOfUse = SelectedSensor.PlaceOfUse,
+                PlaceOfDoc = SelectedSensor.PlaceOfDoc
             };
 
             var dialog = new SensorEditDialog(sensorCopy);
@@ -479,6 +482,7 @@ public bool UseDateFilter
                 SelectedSensor.PlaceOfUse = sensorCopy.PlaceOfUse;
                 SelectedSensor.ClassForSure = sensorCopy.ClassForSure;
                 SelectedSensor.ExpiryDate = sensorCopy.ExpiryDate;
+                SelectedSensor.PlaceOfDoc = sensorCopy.PlaceOfDoc;
 
                 SaveData();
                 // Обновляем отображение после редактирования
@@ -758,21 +762,16 @@ public bool UseDateFilter
             /// </summary>
             private void CheckExpiredSensors()
             {
-                var approaching = Sensors.Where(t =>
-            t.ExpiryDate >= DateTime.Today &&
-            t.ExpiryDate <= DateTime.Today.AddDays(30)).ToList();
+            var approaching = Sensors.Where(t =>
+                t.ExpiryDate >= DateTime.Today &&
+                t.ExpiryDate <= DateTime.Today.AddDays(30)).ToList();
 
-                if (approaching.Any())
-                {
-                    var message = new System.Text.StringBuilder();
-                    message.AppendLine("Скоро истекает срок у следующих датчиков:");
-                    foreach (var sensor in approaching)
-                        message.AppendLine($"- {sensor.Name} (№{sensor.SerialNumber}) - до {sensor.ExpiryDate:dd.MM.yyyy}");
-
-                    MessageBox.Show(message.ToString(), "Внимание! Проверьте сроки",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
+            if (approaching.Any())
+            {
+                var dialog = new ExpiredSensorsDialog(approaching);
+                dialog.ShowDialog();
             }
+        }
 
         /// <summary>
         /// Событие изменения свойства (для INotifyPropertyChanged)

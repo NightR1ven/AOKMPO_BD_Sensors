@@ -1,0 +1,30 @@
+﻿<Window x:Class="AOKMPO_BD_Sensors.Views.ExpiredSensorsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AOKMPO_BD_Sensors.Views"
+        mc:Ignorable="d"
+        Title="Внимание! Проверьте сроки"
+        Height="400" Width="600"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="Скоро истекает срок у следующих датчиков:"
+                   FontWeight="Bold" Margin="0,0,0,10"/>
+        <DataGrid Grid.Row="1" Name="SensorsGrid" AutoGenerateColumns="False" 
+                  CanUserAddRows="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Заводской номер" Binding="{Binding SerialNumber}" Width="Auto"/>
+                <DataGridTextColumn Header="Срок до" Binding="{Binding ExpiryDate, StringFormat=dd.MM.yyyy}" Width="Auto"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Grid.Row="2" Content="OK" Width="80" HorizontalAlignment="Right"
+                Margin="0,10,0,0" IsDefault="True" Click="OkButton_Click"/>
+    </Grid>
+</Window>
