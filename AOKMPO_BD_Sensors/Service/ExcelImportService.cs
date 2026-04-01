@@ -19,7 +19,6 @@ namespace AOKMPO_BD_Sensors.Service
 
                 // Проверка шапки
                 if (worksheet.Cell(5, 1).GetString() != "№")
-                    
                 {
                     throw new Exception("Неверный формат файла! Используйте шаблон экспорта.");
                 }
@@ -37,11 +36,20 @@ namespace AOKMPO_BD_Sensors.Service
 
                     try
                     {
-                        // Пытаемся распарсить даты, если не получается — пропускаем строку
+                        // Пытаемся распарсить даты
                         if (!DateTime.TryParse(row.Cell(7).GetString(), out var placementDate) ||
                             !DateTime.TryParse(row.Cell(8).GetString(), out var expiryDate))
                         {
                             continue;
+                        }
+
+                        // Чтение PlaceOfDoc (колонка 11, если существует)
+                        string placeOfDoc = "не известно";
+                        if (row.Cell(11).IsEmpty() == false)
+                        {
+                            placeOfDoc = row.Cell(11).GetString();
+                            if (string.IsNullOrWhiteSpace(placeOfDoc))
+                                placeOfDoc = "не известно";
                         }
 
                         sensors.Add(new Sensor
@@ -51,10 +59,11 @@ namespace AOKMPO_BD_Sensors.Service
                             SerialNumber = row.Cell(4).GetString(),
                             MeasurementLimits = row.Cell(5).GetString(),
                             ClassForSure = row.Cell(6).GetString(),
-                            PlacementDate = DateTime.Parse(row.Cell(7).GetString()),
-                            ExpiryDate = DateTime.Parse(row.Cell(8).GetString()),
+                            PlacementDate = placementDate,
+                            ExpiryDate = expiryDate,
                             Location = row.Cell(9).GetString(),
-                            PlaceOfUse = row.Cell(10).GetString()
+                            PlaceOfUse = row.Cell(10).GetString(),
+                            PlaceOfDoc = placeOfDoc   // новое поле
                         });
                     }
                     catch (Exception ex)

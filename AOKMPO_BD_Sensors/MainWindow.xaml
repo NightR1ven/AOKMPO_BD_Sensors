@@ -11,99 +11,129 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:EqualsConverter x:Key="EqualsConverter"/>
+
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="0,0,10,10"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Height" Value="28"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="DatePicker">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <ControlTemplate x:Key="LoadingOverlay" TargetType="ContentControl">
+            <Border Background="#CCFFFFFF" BorderBrush="LightGray" BorderThickness="1" CornerRadius="5">
+                <StackPanel Margin="15" Orientation="Vertical" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding ProgressMessage}" Margin="0,0,0,10"/>
+                    <ProgressBar Value="{Binding ProgressValue}" Height="20" Width="310" Maximum="100"/>
+                </StackPanel>
+            </Border>
+        </ControlTemplate>
     </Window.Resources>
-    <!-- Основной контейнер -->
+
     <Grid Margin="10">
-        <!-- Определение строк -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Панель поиска -->
             <RowDefinition Height="Auto"/>
-            <!-- Панель датчиков -->
             <RowDefinition Height="*"/>
-            <!-- Список датчиков -->
             <RowDefinition Height="Auto"/>
-            <!-- Статус бар -->
         </Grid.RowDefinitions>
-        
-        <!-- Индикатор загрузки -->
-        <StackPanel Grid.Row="3" Orientation="Vertical" HorizontalAlignment="Right"
-                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
-            <TextBlock Text="{Binding ProgressMessage}" Margin="0 0 0 5"/>
-            <ProgressBar Value="{Binding ProgressValue}" Height="20" Maximum="100" Width="310"/>
-        </StackPanel>
 
-        <!-- Панель поиска -->
-        <StackPanel Orientation="Horizontal" Grid.Row="0">
-            <!-- Поле поиска -->
-            <TextBox Width="300" Margin="0,10,10,10" 
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center">
-                <!-- Привязка Enter к команде показа всех -->
-                <TextBox.InputBindings>
-                    <KeyBinding Key="Enter" Command="{Binding ShowAllCommand}"/>
-                </TextBox.InputBindings>
-            </TextBox>
-            <!-- Кнопки фильтрации -->
-            <Button Content="Истекающие" Width="100" Margin="0,10,10,10" Command="{Binding ShowExpiringCommand}"/>
+        <!-- Поиск и фильтры -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Фильтр по дате -->
-            <!-- Выбор предустановленного периода -->
-            <ComboBox ItemsSource="{Binding DatePeriods}" 
-              SelectedValuePath="Key"
-              DisplayMemberPath="Value.Name"
-              SelectedValue="{Binding SelectedPeriod, Mode=TwoWay}"
-              Width="150"
-              Margin="5,10,5,10"/>
+            <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="1" CornerRadius="3" Height="28" Background="White">
+                <DockPanel>
+                    <Image Width="16" Height="16" Margin="5,0" DockPanel.Dock="Left"/>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             BorderThickness="0"
+                             Width="250"
+                             AutomationProperties.Name="Поиск"
+                             ToolTip="Введите текст для поиска (Enter – выполнить поиск)">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </DockPanel>
+            </Border>
 
-            <!-- Ручной ввод дат (доступен только для custom периода) -->
-            <DatePicker SelectedDate="{Binding StartDate}" 
-                IsEnabled="{Binding SelectedPeriod, Converter={StaticResource EqualsConverter}, ConverterParameter=custom}"
-                Margin="5,10" Width="120"/>
-            <TextBlock Text="по" VerticalAlignment="Center" Margin="5,0"/>
-            <DatePicker SelectedDate="{Binding EndDate}" 
-                IsEnabled="{Binding SelectedPeriod, Converter={StaticResource EqualsConverter}, ConverterParameter=custom}"
-                Margin="5,10" Width="120"/>
-        </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <ComboBox ItemsSource="{Binding DatePeriods}" 
+                          SelectedValuePath="Key"
+                          DisplayMemberPath="Value.Name"
+                          SelectedValue="{Binding SelectedPeriod, Mode=TwoWay}"
+                          Width="150"
+                          Margin="5,0"
+                          ToolTip="Выберите предустановленный период"/>
+                <DatePicker SelectedDate="{Binding StartDate}" 
+                            IsEnabled="{Binding SelectedPeriod, Converter={StaticResource EqualsConverter}, ConverterParameter=custom}"
+                            Width="110" 
+                            Margin="5,0"
+                            ToolTip="Начальная дата (доступно для ручного ввода)"/>
+                <TextBlock Text="–" VerticalAlignment="Center" Margin="5,0"/>
+                <DatePicker SelectedDate="{Binding EndDate}" 
+                            IsEnabled="{Binding SelectedPeriod, Converter={StaticResource EqualsConverter}, ConverterParameter=custom}"
+                            Width="110" 
+                            Margin="5,0"
+                            ToolTip="Конечная дата (доступно для ручного ввода)"/>
+            </StackPanel>
+        </Grid>
 
-        <!-- Панель датчиков -->
-        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Left">
-            <!-- Кнопки управления -->
-            <Button Content="Добавить" Width="80" Margin="0,0,10,10" Command="{Binding AddCommand}"/>
-            <Button Content="Редактировать" Width="100" Margin="0,0,10,10" Command="{Binding EditCommand}"/>
-            <Button Content="Удалить" Width="80" Margin="0,0,10,10" Command="{Binding DeleteCommand}"/>
-            <Button Content="Экспорт в CSV" Width="100" Margin="0,0,10,10" Command="{Binding ExportCommand}"/>
-            <Button Content="Экспорт в Excel" Command="{Binding ExportToExcelCommand}" Margin="0,0,10,10"/>
-            <Button Content="Импорт из Excel" Command="{Binding ImportFromExcelCommand}" Width="120" Margin="0,0,10,10"/>
-            <Button Content="Отчет в Excel" Command="{Binding  ExportToExcelReportCommand}" Margin="0,0,10,10"/>
+        <!-- Кнопки -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Добавить" Width="80" Command="{Binding AddCommand}" ToolTip="Добавить новый датчик (Ctrl+N)"/>
+            <Button Content="Редактировать" Width="100" Command="{Binding EditCommand}" ToolTip="Редактировать выбранный датчик (Ctrl+E)"/>
+            <Button Content="Удалить" Width="80" Command="{Binding DeleteCommand}" ToolTip="Удалить выбранный датчик (Del)"/>
+
+            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
+
+            <Button Content="Экспорт в CSV" Width="100" Command="{Binding ExportCommand}" ToolTip="Экспорт списка в CSV-файл"/>
+            <Button Content="Экспорт в Excel" Command="{Binding ExportToExcelCommand}" ToolTip="Экспорт списка в Excel"/>
+            <Button Content="Импорт из Excel" Width="120" Command="{Binding ImportFromExcelCommand}" ToolTip="Импорт данных из Excel"/>
+            <Button Content="Отчет в Excel" Command="{Binding ExportToExcelReportCommand}" ToolTip="Сформировать отчет в Excel"/>
         </StackPanel>
 
         <!-- Список датчиков -->
-        <ListView Grid.Row="2" ItemsSource="{Binding SensorsView}" SelectedItem="{Binding SelectedSensor}" 
-                  MouseDoubleClick="ListView_MouseDoubleClick" Width="auto" VirtualizingStackPanel.IsVirtualizing="True"
+        <ListView Grid.Row="2" 
+                  ItemsSource="{Binding SensorsView}" 
+                  SelectedItem="{Binding SelectedSensor}" 
+                  MouseDoubleClick="ListView_MouseDoubleClick"
+                  VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling">
-            <!-- Удаление на клавишу Delete -->
             <ListView.InputBindings>
                 <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
             </ListView.InputBindings>
-            <!-- Определение колонок -->
             <ListView.View>
                 <GridView>
-                    <!-- Колонки с привязкой к свойствам Sensor -->
-                    <GridViewColumn Header="Название СИ" DisplayMemberBinding="{Binding Name}" Width="138"/>
+                    <GridViewColumn Header="Название СИ" DisplayMemberBinding="{Binding Name}" Width="150"/>
                     <GridViewColumn Header="Тип СИ №" DisplayMemberBinding="{Binding TypeSensor}" Width="80"/>
                     <GridViewColumn Header="Заводской №" DisplayMemberBinding="{Binding SerialNumber}" Width="120"/>
                     <GridViewColumn Header="Пределы изм." DisplayMemberBinding="{Binding MeasurementLimits}" Width="80"/>
                     <GridViewColumn Header="Кл. точности" DisplayMemberBinding="{Binding ClassForSure}" Width="80"/>
                     <GridViewColumn Header="Прошлая проверка" DisplayMemberBinding="{Binding PlacementDate, StringFormat=dd.MM.yyyy}" Width="110"/>
-                    <!-- Кастомная колонка для срока хранения с цветом -->
                     <GridViewColumn Header="Будущая проверка" Width="110">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <!-- Цветовой индикатор -->
-                                    <Rectangle Width="16" Height="16" Fill="{Binding ExpiryColor}" Margin="0,0,5,0"/>
-                                    <!-- Дата -->
+                                <StackPanel Orientation="Horizontal" ToolTip="{Binding ExpiryStatus}">
+                                    <Rectangle Width="12" Height="12" Fill="{Binding ExpiryColor}" Margin="0,0,5,0" RadiusX="2" RadiusY="2"/>
                                     <TextBlock Text="{Binding ExpiryDate, StringFormat=dd.MM.yyyy}"/>
                                 </StackPanel>
                             </DataTemplate>
@@ -111,16 +141,37 @@
                     </GridViewColumn>
                     <GridViewColumn Header="Документ" DisplayMemberBinding="{Binding PlaceOfDoc}" Width="90"/>
                     <GridViewColumn Header="Хранится" DisplayMemberBinding="{Binding Location}" Width="80"/>
-                    <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="90" />
+                    <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="90"/>
                     <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="80"/>
                 </GridView>
             </ListView.View>
-            <!-- Стиль для элементов списка - цвет фона по сроку -->
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
-                    <Setter Property="Background" Value="{Binding ExpiryColor}"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                            <Setter Property="Foreground" Value="DarkRed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsExpiringSoon}" Value="True">
+                            <Setter Property="Foreground" Value="DarkOrange"/>
+                        </DataTrigger>
+                    </Style.Triggers>
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
+
+        <!-- Статус-бар -->
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText, FallbackValue='Готов'}"/>
+            </StatusBarItem>
+            <Separator Style="{StaticResource {x:Static StatusBar.SeparatorStyleKey}}"/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding RecordCount, FallbackValue='0', StringFormat='Записей: {0}'}"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding LastUpdate, FallbackValue='Обновлено: --:--', StringFormat='Обновлено: {0}'}"/>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>

@@ -632,6 +632,7 @@ public bool UseDateFilter
             /// </summary>
             private void ExportToExcel()
             {
+               
                 var dialog = new SaveFileDialog
                 {
                     Filter = "Excel files (*.xlsx)|*.xlsx",
