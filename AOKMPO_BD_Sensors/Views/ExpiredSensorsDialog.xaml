@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:AOKMPO_BD_Sensors.Views"
         mc:Ignorable="d"
         Title="Внимание! Проверьте сроки"
-        Height="400" Width="600"
+        Height="400" Width="350"
+        Topmost="True"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -15,7 +16,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock Text="Скоро истекает срок у следующих датчиков:"
-                   FontWeight="Bold" Margin="0,0,0,10"/>
+                   FontWeight="Bold" Margin="0,0,10,10"/>
         <DataGrid Grid.Row="1" Name="SensorsGrid" AutoGenerateColumns="False" 
                   CanUserAddRows="False" IsReadOnly="True">
             <DataGrid.Columns>

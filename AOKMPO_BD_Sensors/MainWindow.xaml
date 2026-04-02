@@ -82,7 +82,7 @@
                           SelectedValuePath="Key"
                           DisplayMemberPath="Value.Name"
                           SelectedValue="{Binding SelectedPeriod, Mode=TwoWay}"
-                          Width="150"
+                          Width="200"
                           Margin="5,0"
                           ToolTip="Выберите предустановленный период"/>
                 <DatePicker SelectedDate="{Binding StartDate}" 
@@ -107,9 +107,8 @@
 
             <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5,0"/>
 
-            <Button Content="Экспорт в CSV" Width="100" Command="{Binding ExportCommand}" ToolTip="Экспорт списка в CSV-файл"/>
-            <Button Content="Экспорт в Excel" Command="{Binding ExportToExcelCommand}" ToolTip="Экспорт списка в Excel"/>
             <Button Content="Импорт из Excel" Width="120" Command="{Binding ImportFromExcelCommand}" ToolTip="Импорт данных из Excel"/>
+            <Button Content="Экспорт в Excel" Command="{Binding ExportToExcelCommand}" ToolTip="Экспорт списка в Excel"/>
             <Button Content="Отчет в Excel" Command="{Binding ExportToExcelReportCommand}" ToolTip="Сформировать отчет в Excel"/>
         </StackPanel>
 
@@ -144,7 +143,7 @@
                     <GridViewColumn Header="Документ" DisplayMemberBinding="{Binding PlaceOfDoc}" Width="90"/>
                     <GridViewColumn Header="Хранится" DisplayMemberBinding="{Binding Location}" Width="80"/>
                     <GridViewColumn Header="Эксплуатации" DisplayMemberBinding="{Binding PlaceOfUse}" Width="90"/>
-                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="80"/>
+                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding ExpiryStatus}" Width="120"/>
                 </GridView>
             </ListView.View>
             <ListView.ItemContainerStyle>

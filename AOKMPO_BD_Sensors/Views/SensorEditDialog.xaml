@@ -10,7 +10,7 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
     <Grid Margin="10">
-        <!-- Определение строк сетки -->
+        <!-- Определение строк сетки (каждое поле и подпись) -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Название -->
@@ -25,11 +25,11 @@
             <RowDefinition Height="Auto"/>
             <!-- Поле заводского номера -->
             <RowDefinition Height="Auto"/>
-            <!--  Пределы измерения -->
+            <!-- Пределы измерения -->
             <RowDefinition Height="Auto"/>
-            <!-- Поле предела измерения -->
+            <!-- Поле пределов -->
             <RowDefinition Height="Auto"/>
-            <!--  Класс точности -->
+            <!-- Класс точности -->
             <RowDefinition Height="Auto"/>
             <!-- Поле класса точности -->
             <RowDefinition Height="Auto"/>
@@ -45,16 +45,14 @@
             <RowDefinition Height="Auto"/>
             <!-- Поле хранения -->
             <RowDefinition Height="Auto"/>
-            <!-- Эксплуатация -->
+            <!-- Документ -->
             <RowDefinition Height="Auto"/>
-            <!-- Поле Эксплуатации -->
+            <!-- Поле документа -->
             <RowDefinition Height="Auto"/>
-
+            <!-- Эксплуатации -->
             <RowDefinition Height="Auto"/>
-
+            <!-- Поле эксплуатации -->
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            
             <!-- Кнопки -->
         </Grid.RowDefinitions>
 
@@ -62,7 +60,7 @@
         <Label Content="Название СИ:"/>
         <TextBox Grid.Row="1" Text="{Binding Sensor.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-        <!-- Название датчика -->
+        <!-- Тип СИ -->
         <Label Grid.Row="2" Content="Тип СИ:"/>
         <TextBox Grid.Row="3" Text="{Binding Sensor.TypeSensor, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
@@ -78,15 +76,15 @@
         <Label Grid.Row="8" Content="Класс точности:"/>
         <TextBox Grid.Row="9" Text="{Binding Sensor.ClassForSure, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-        <!-- Дата размещения -->
+        <!-- Дата размещения (прошлая проверка) -->
         <Label Grid.Row="10" Content="Дата размещения:"/>
         <DatePicker Grid.Row="11" SelectedDate="{Binding Sensor.PlacementDate}" Margin="0,0,0,10"/>
 
-        <!-- Срок хранения с цветовой индикацией -->
+        <!-- Срок хранения (будущая проверка) с цветовой индикацией -->
         <Label Grid.Row="12" Content="Срок хранения:"/>
         <DatePicker Grid.Row="13" SelectedDate="{Binding Sensor.ExpiryDate}" Margin="0,0,0,10">
             <DatePicker.Background>
-                <!-- Привязка цвета фона к свойству ExpiryColor -->
+                <!-- Цвет фона DatePicker привязан к свойству ExpiryColor датчика -->
                 <Binding Path="Sensor.ExpiryColor" Mode="OneWay"/>
             </DatePicker.Background>
         </DatePicker>
@@ -95,11 +93,11 @@
         <Label Grid.Row="14" Content="Хранится:"/>
         <TextBox Grid.Row="15" Text="{Binding Sensor.Location, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-        <!-- Место хранения документов -->
+        <!-- Документ -->
         <Label Grid.Row="16" Content="Документ:"/>
         <TextBox Grid.Row="17" Text="{Binding Sensor.PlaceOfDoc, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 
-        <!-- Эксплуатация -->
+        <!-- Эксплуатации -->
         <Label Grid.Row="18" Content="Эксплуатации:"/>
         <TextBox Grid.Row="19" Text="{Binding Sensor.PlaceOfUse, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
 

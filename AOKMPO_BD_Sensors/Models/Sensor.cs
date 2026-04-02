@@ -163,6 +163,16 @@ namespace AOKMPO_BD_Sensors
         }
 
         /// <summary>
+        /// Флаг, указывающий, истёк ли срок поверки (ExpiryDate < сегодня).
+        /// </summary>
+        public bool IsExpired => ExpiryDate < DateTime.Today;
+
+        /// <summary>
+        /// Флаг, указывающий, истекает ли срок поверки в ближайшие 30 дней.
+        /// </summary>
+        public bool IsExpiringSoon => !IsExpired && ExpiryDate <= DateTime.Today.AddDays(30);
+
+        /// <summary>
         /// Событие, возникающее при изменении свойств
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
@@ -174,5 +184,7 @@ namespace AOKMPO_BD_Sensors
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+
     }
 }
